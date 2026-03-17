@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Remote Rolet drfile</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        body { font-family: sans-serif; text-align: center; background: #222; color: white; }
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 20px; }
+        button { 
+            padding: 20px; font-size: 20px; font-weight: bold; 
+            border-radius: 10px; border: none; background: #e67e22; color: white;
+            active { background: #d35400; }
+        }
+        .status { margin-top: 20px; color: #2ecc71; }
+    </style>
+</head>
+<body>
+    <h2>REMOTE ROLET PRO</h2>
+    <div class="grid" id="buttons"></div>
+    <p class="status" id="stat">Siap kirim...</p>
+
+    <script>
+        // Masukkan config database kamu
+        const firebaseConfig = {
+            databaseURL: "https://roullete-fc17f-default-rtdb.asia-southeast1.firebasedatabase.app/"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database().ref('control');
+
+        // Buat tombol 1-12
+        const btnContainer = document.getElementById("buttons");
+        for(let i=1; i<=12; i++) {
+            let btn = document.createElement("button");
+            btn.innerText = i;
+            btn.onclick = () => {
+                // Kita kirim angka sebagai teks dengan ".0" agar Firebase tidak menghapusnya
+                let val = i + ".0";
+                db.set({ rotation: val });
+                document.getElementById("stat").innerText = "Terkirim: " + val;
+            };
+            btnContainer.appendChild(btn);
+        }
+    </script>
+</body>
+</html>
