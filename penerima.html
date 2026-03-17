@@ -6,25 +6,41 @@
 </head>
 <body>
     <script>
-        // 1. Konfigurasi Database kamu
         const firebaseConfig = {
             databaseURL: "https://roullete-fc17f-default-rtdb.asia-southeast1.firebasedatabase.app/"
         };
-        
-        // 2. Inisialisasi Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database().ref('control');
 
-        // 3. Pantau perubahan data secara Real-time (Zero Delay)
+        let lastVal = null;
+
         db.on('value', (snapshot) => {
             const data = snapshot.val();
-            if (data && data.rotation) {
-                // Mengirim angka ke fungsi Smali di APK Rolet
-                if (window.AndroidInterface) {
-                    window.AndroidInterface.postMessage(data.rotation);
+            
+            if (data && data.rotation !== undefined) {
+                const val = data.rotation.toString();
+                
+                // Cek apakah perintahnya adalah "RANDOM"
+                if (val === "RANDOM") {
+                    generateRandom();
+                } else {
+                    // Jika perintah angka biasa (0.0 - 11.0)
+                    sendToApp(val);
                 }
             }
         });
+
+        function generateRandom() {
+            // Menghasilkan angka acak antara 0 sampai 11 dengan format .0
+            const rand = (Math.floor(Math.random() * 12)).toFixed(1);
+            sendToApp(rand);
+        }
+
+        function sendToApp(value) {
+            if (window.AndroidInterface) {
+                window.AndroidInterface.postMessage(value);
+            }
+        }
     </script>
 </body>
 </html>
