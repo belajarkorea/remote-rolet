@@ -6,52 +6,59 @@
 </head>
 <body>
     <script>
+        // 1. Konfigurasi Database
         const firebaseConfig = {
             databaseURL: "https://roullete-fc17f-default-rtdb.asia-southeast1.firebasedatabase.app/"
         };
+        
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database().ref('control');
 
-        // Fungsi Pendengar Utama
+        // 2. Fungsi Utama Pendengar (Realtime)
         function startListening() {
+            // Memaksa Firebase untuk Online
+            firebase.database().goOnline();
+
             db.on('value', (snapshot) => {
                 const data = snapshot.val();
                 if (data && data.rotation !== undefined) {
                     const val = data.rotation.toString();
                     
+                    // Logika Filter: Jika "RANDOM" acak dulu, jika angka langsung kirim
                     if (val === "RANDOM") {
-                        generateRandom();
+                        const rand = (Math.floor(Math.random() * 12)).toFixed(1);
+                        sendToApp(rand);
                     } else {
                         sendToApp(val);
                     }
                 }
             }, (error) => {
-                // Jika koneksi internet drop, coba sambungkan lagi otomatis
+                console.log("Koneksi terputus, mencoba menyambung kembali...");
+                firebase.database().goOnline();
                 setTimeout(startListening, 3000);
             });
         }
 
-        function generateRandom() {
-            const rand = (Math.floor(Math.random() * 12)).toFixed(1);
-            sendToApp(rand);
-        }
-
+        // 3. Fungsi Kirim ke Smali
         function sendToApp(value) {
             if (window.AndroidInterface) {
                 window.AndroidInterface.postMessage(value);
             }
         }
 
-        // Jalankan pendengar pertama kali
+        // Jalankan Pendengar Pertama Kali
         startListening();
 
-        // JANTUNG BUATAN (KEEP ALIVE)
-        // Setiap 60 detik, kirim data "ping" ke Firebase agar koneksi tidak dianggap idle/mati
+        // 4. JANTUNG BUATAN (REFRESH KONEKSI TIAP 30 DETIK)
+        // Ini agar Firebase tidak dianggap 'Idle' oleh Android
         setInterval(() => {
+            firebase.database().goOffline();
+            firebase.database().goOnline();
+            
+            // Tambahkan ping kecil ke database agar jalur data tetap panas
             db.update({ ping: Date.now() });
-            console.log("Koneksi tetap terjaga...");
-        }, 10000); 
+            console.log("Koneksi dipaksa segar...");
+        }, 5000);
     </script>
 </body>
 </html>
-
