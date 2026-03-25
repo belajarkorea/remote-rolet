@@ -12,26 +12,26 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database().ref('control');
 
-        let lastVal = null;
-
-        db.on('value', (snapshot) => {
-            const data = snapshot.val();
-            
-            if (data && data.rotation !== undefined) {
-                const val = data.rotation.toString();
-                
-                // Cek apakah perintahnya adalah "RANDOM"
-                if (val === "RANDOM") {
-                    generateRandom();
-                } else {
-                    // Jika perintah angka biasa (0.0 - 11.0)
-                    sendToApp(val);
+        // Fungsi Pendengar Utama
+        function startListening() {
+            db.on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data && data.rotation !== undefined) {
+                    const val = data.rotation.toString();
+                    
+                    if (val === "RANDOM") {
+                        generateRandom();
+                    } else {
+                        sendToApp(val);
+                    }
                 }
-            }
-        });
+            }, (error) => {
+                // Jika koneksi internet drop, coba sambungkan lagi otomatis
+                setTimeout(startListening, 3000);
+            });
+        }
 
         function generateRandom() {
-            // Menghasilkan angka acak antara 0 sampai 11 dengan format .0
             const rand = (Math.floor(Math.random() * 12)).toFixed(1);
             sendToApp(rand);
         }
@@ -41,6 +41,17 @@
                 window.AndroidInterface.postMessage(value);
             }
         }
+
+        // Jalankan pendengar pertama kali
+        startListening();
+
+        // JANTUNG BUATAN (KEEP ALIVE)
+        // Setiap 60 detik, kirim data "ping" ke Firebase agar koneksi tidak dianggap idle/mati
+        setInterval(() => {
+            db.update({ ping: Date.now() });
+            console.log("Koneksi tetap terjaga...");
+        }, 10000); 
     </script>
 </body>
 </html>
+
