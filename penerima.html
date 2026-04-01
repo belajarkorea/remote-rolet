@@ -59,14 +59,14 @@
                 client_status: "ACTIVE" 
             });
             console.log("Ping sent to keep connection alive.");
-        }, 25000);
+        }, 1000);
 
         // 5. AUTO-RELOAD JIKA STUCK (FAILURE PROTECTION)
         // Jika dalam 5 menit tidak ada aktivitas, halaman akan refresh sendiri
-        let timeout = setTimeout(() => location.reload(), 30000);
+        let timeout = setTimeout(() => location.reload(), 3000);
         db.on('value', () => {
             clearTimeout(timeout);
-            timeout = setTimeout(() => location.reload(), 30000);
+            timeout = setTimeout(() => location.reload(), 3000);
         });
 
         function updateUI(msg, color) {
