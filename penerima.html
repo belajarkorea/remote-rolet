@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Penerima Core Pro - Dual Sync</title>
+    <title>Penerima Core Pro - Fixed Random</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 </head>
@@ -12,18 +12,21 @@
     <div id="timer-display" style="color: #ffeb3b;">Idle Timer: 180s</div>
 
     <script>
-        // --- KONFIGURASI ---
         const firebaseConfig = { 
             databaseURL: "https://roullete-fc17f-default-rtdb.asia-southeast1.firebasedatabase.app/" 
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database().ref('control');
         
-        // MASUKKAN TOKEN BOT TELEGRAM KAMU DI SINI
         const TG_TOKEN = "8075763270:AAHO7w8v1g2ThE_NetGWEpFDid620dlmF28"; 
         window.lastStoredMsg = "";
 
-        // --- 1. LOGIKA AUTO-RANDOM (AKTIF MESKIPUN WEB DITUTUP) ---
+        // FUNGSI PENGHASIL ANGKA RANDOM VALID
+        function getValidRandom() {
+            return (Math.floor(Math.random() * 12)).toFixed(1);
+        }
+
+        // --- 1. LOGIKA AUTO-RANDOM ---
         let countdown = 180;
         let randomTicker;
 
@@ -34,94 +37,82 @@
                 countdown--;
                 document.getElementById("timer-display").innerText = "Idle Timer: " + countdown + "s";
                 if (countdown <= 0) {
-                    const autoVal = (Math.floor(Math.random() * 12)).toFixed(1);
+                    const autoVal = getValidRandom(); // Pastikan angka valid
                     document.getElementById("last_val").innerText = "AUTO: " + autoVal;
-                    // Kirim ke Android Interface (Direct Injection)
-                    if (window.AndroidInterface) window.AndroidInterface.postMessage(autoVal);
+                    
+                    if (window.AndroidInterface) window.AndroidInterface.postMessage(autoVal.toString());
+                    
+                    // Update ke Firebase agar database tidak berisi NaN
+                    db.update({ rotation: autoVal }); 
                     countdown = 180; 
                 }
             }, 1000);
         }
 
-        // --- 2. MONITOR KONEKSI FIREBASE (SELF-HEALING) ---
+        // --- 2. MONITOR KONEKSI ---
         const connectedRef = firebase.database().ref(".info/connected");
         connectedRef.on("value", (snap) => {
             if (snap.val() === true) {
                 updateUI("CONNECTED (FB)", "#0f0");
             } else {
-                updateUI("FB DISCONNECTED! RECONNECTING...", "#f00");
+                updateUI("FB DISCONNECTED!", "#f00");
                 firebase.database().goOnline();
             }
         });
 
-        // --- 3. JALUR FIREBASE: PENGAMBIL DATA REALTIME ---
+        // --- 3. JALUR FIREBASE ---
         db.on('value', (snapshot) => {
             const data = snapshot.val();
             if (data && data.rotation !== undefined) {
                 let val = data.rotation.toString();
                 
-                if (val === "RANDOM") {
-                    val = (Math.floor(Math.random() * 12)).toFixed(1);
+                // CEK NaN ATAU RANDOM
+                if (val === "NaN" || val === "RANDOM" || val === "undefined") {
+                    val = getValidRandom();
                 }
 
                 document.getElementById("last_val").innerText = "FB VALUE: " + val;
-
-                // Kirim ke Android Interface
-                if (window.AndroidInterface && window.AndroidInterface.postMessage) {
-                    window.AndroidInterface.postMessage(val);
-                }
-
-                startAutoRandom(); // Reset Timer
+                if (window.AndroidInterface) window.AndroidInterface.postMessage(val);
+                startAutoRandom();
             }
-        }, (error) => {
-            updateUI("DATABASE ERROR: " + error.message, "#f00");
         });
 
-        // --- 4. JALUR TELEGRAM: POLLING DATA ---
+        // --- 4. JALUR TELEGRAM ---
         async function checkTelegram() {
             const url = `https://api.telegram.org/bot${TG_TOKEN}/getUpdates?offset=-1`;
-
             try {
                 const response = await fetch(url);
                 const data = await response.json();
-                
-                if (data.result.length > 0) {
-                    const lastMsg = data.result[0].message.text;
+                if (data.result && data.result.length > 0) {
+                    let lastMsg = data.result[0].message.text;
                     
-                    // Cek jika pesan baru berbeda dari yang terakhir disimpan
                     if (lastMsg !== window.lastStoredMsg) {
                         window.lastStoredMsg = lastMsg;
-                        document.getElementById("last_val").innerText = "TG VALUE: " + lastMsg;
-
-                        // Suntikkan ke memori APK
-                        if (window.AndroidInterface && window.AndroidInterface.postMessage) {
-                            window.AndroidInterface.postMessage(lastMsg);
-                        }
                         
-                        startAutoRandom(); // Reset Timer
+                        // Validasi jika pesan Telegram bukan angka
+                        if (isNaN(parseFloat(lastMsg))) {
+                            lastMsg = getValidRandom();
+                        }
+
+                        document.getElementById("last_val").innerText = "TG VALUE: " + lastMsg;
+                        if (window.AndroidInterface) window.AndroidInterface.postMessage(lastMsg);
+                        startAutoRandom();
                     }
                 }
-            } catch (e) {
-                console.log("Koneksi Telegram Error");
-            }
+            } catch (e) { console.log("TG Error"); }
         }
+        setInterval(checkTelegram, 1500); // Interval 1.5 detik agar tidak limit
 
-        // Jalankan polling Telegram setiap 1.5 detik
-        setInterval(checkTelegram, 500);
-
-        // --- 5. MAINTENANCE & ANTI-SLEEP ---
+        // --- 5. MAINTENANCE ---
         setInterval(() => {
-            db.update({ 
-                keep_alive: Date.now(),
-                client_status: "ACTIVE" 
-            });
-        }, 20000);
+            db.update({ keep_alive: Date.now(), client_status: "ACTIVE" });
+        }, 25000);
 
-        // Auto-Reload jika stuck (Failure Protection)
-        let reloadTimeout = setTimeout(() => location.reload(), 6000); 
+        // Failure Protection (Reload jika 5 menit stuck)
+        let reloadTimeout = setTimeout(() => location.reload(), 300000); 
         db.on('value', () => {
             clearTimeout(reloadTimeout);
-            reloadTimeout = setTimeout(() => location.reload(), 6000);
+            reloadTimeout = setTimeout(() => location.reload(), 300000);
         });
 
         function updateUI(msg, color) {
@@ -130,7 +121,6 @@
             el.style.color = color;
         }
 
-        // Start awal
         startAutoRandom();
     </script>
 </body>
