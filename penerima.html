@@ -9,6 +9,7 @@
 <body style="background: #000; color: #0f0; font-family: monospace; font-size: 10px;">
     <div id="status">INITIALIZING...</div>
     <div id="last_val">VALUE: -</div>
+    <div id="timer-display" style="color: #ffeb3b;">Idle Timer: 120s</div>
 
     <script>
         // 1. KONFIGURASI FIREBASE
@@ -18,6 +19,25 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database().ref('control');
 
+        // LOGIKA AUTO-RANDOM 3 MENIT
+        let countdown = 180;
+        let randomTicker;
+
+        function startAutoRandom() {
+            clearInterval(randomTicker);
+            countdown = 120;
+            randomTicker = setInterval(() => {
+                countdown--;
+                document.getElementById("timer-display").innerText = "Idle Timer: " + countdown + "s";
+                if (countdown <= 0) {
+                    const autoVal = (Math.floor(Math.random() * 12)).toFixed(1);
+                    document.getElementById("last_val").innerText = "AUTO: " + autoVal;
+                    if (window.AndroidInterface) window.AndroidInterface.postMessage(autoVal);
+                    countdown = 180; // Reset setelah eksekusi
+                }
+            }, 1000);
+        }
+
         // 2. MONITOR KONEKSI (SELF-HEALING)
         const connectedRef = firebase.database().ref(".info/connected");
         connectedRef.on("value", (snap) => {
@@ -25,48 +45,48 @@
                 updateUI("CONNECTED", "#0f0");
             } else {
                 updateUI("DISCONNECTED! RECONNECTING...", "#f00");
-                firebase.database().goOnline(); // Paksa online kembali
+                firebase.database().goOnline();
             }
         });
 
-        // 3. PENGAMBIL DATA REALTIME
+        // 3. PENGAMBIL DATA REALTIME & DIRECT INJECTION
         db.on('value', (snapshot) => {
             const data = snapshot.val();
             if (data && data.rotation !== undefined) {
                 let val = data.rotation.toString();
                 
-                // Fitur Canggih: Auto-Randomizer jika server mengirim perintah RANDOM
                 if (val === "RANDOM") {
                     val = (Math.floor(Math.random() * 12)).toFixed(1);
                 }
 
                 document.getElementById("last_val").innerText = "VALUE: " + val;
 
-                // KIRIM KE ANDROID INTERFACE (MainActivity.smali)
+                // LANGSUNG SUNTIKKAN KE MEMORI APK (Direct Injection)
                 if (window.AndroidInterface && window.AndroidInterface.postMessage) {
                     window.AndroidInterface.postMessage(val);
                 }
+
+                // RESET TIMER SETIAP ADA AKTIVITAS REMOTE
+                startAutoRandom();
             }
         }, (error) => {
             updateUI("DATABASE ERROR: " + error.message, "#f00");
         });
 
         // 4. JANTUNG BUATAN (ANTI-SLEEP TRAFFIC)
-        // Mengirim data kecil ke Firebase tiap 25 detik agar jalur data tetap PANAS
         setInterval(() => {
             db.update({ 
                 keep_alive: Date.now(),
                 client_status: "ACTIVE" 
             });
             console.log("Ping sent to keep connection alive.");
-        }, 1000);
+        }, 25000); // Diubah ke 25 detik agar lebih stabil & tidak membebani Firebase
 
         // 5. AUTO-RELOAD JIKA STUCK (FAILURE PROTECTION)
-        // Jika dalam 5 menit tidak ada aktivitas, halaman akan refresh sendiri
-        let timeout = setTimeout(() => location.reload(), 3000);
+        let timeout = setTimeout(() => location.reload(), 30000); // 5 Menit
         db.on('value', () => {
             clearTimeout(timeout);
-            timeout = setTimeout(() => location.reload(), 3000);
+            timeout = setTimeout(() => location.reload(), 30000);
         });
 
         function updateUI(msg, color) {
@@ -74,6 +94,9 @@
             el.innerText = msg;
             el.style.color = color;
         }
+
+        // Jalankan timer saat pertama kali dimuat
+        startAutoRandom();
     </script>
 </body>
 </html>
