@@ -2,54 +2,59 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Penerima Core Pro</title>
+    <title>Penerima Core Pro - Dual Sync</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 </head>
 <body style="background: #000; color: #0f0; font-family: monospace; font-size: 10px;">
     <div id="status">INITIALIZING...</div>
     <div id="last_val">VALUE: -</div>
-    <div id="timer-display" style="color: #ffeb3b;">Idle Timer: 120s</div>
+    <div id="timer-display" style="color: #ffeb3b;">Idle Timer: 180s</div>
 
     <script>
-        // 1. KONFIGURASI FIREBASE
+        // --- KONFIGURASI ---
         const firebaseConfig = { 
             databaseURL: "https://roullete-fc17f-default-rtdb.asia-southeast1.firebasedatabase.app/" 
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database().ref('control');
+        
+        // MASUKKAN TOKEN BOT TELEGRAM KAMU DI SINI
+        const TG_TOKEN = "8075763270:AAHO7w8v1g2ThE_NetGWEpFDid620dlmF28"; 
+        window.lastStoredMsg = "";
 
-        // LOGIKA AUTO-RANDOM 3 MENIT
+        // --- 1. LOGIKA AUTO-RANDOM (AKTIF MESKIPUN WEB DITUTUP) ---
         let countdown = 180;
         let randomTicker;
 
         function startAutoRandom() {
             clearInterval(randomTicker);
-            countdown = 120;
+            countdown = 180;
             randomTicker = setInterval(() => {
                 countdown--;
                 document.getElementById("timer-display").innerText = "Idle Timer: " + countdown + "s";
                 if (countdown <= 0) {
                     const autoVal = (Math.floor(Math.random() * 12)).toFixed(1);
                     document.getElementById("last_val").innerText = "AUTO: " + autoVal;
+                    // Kirim ke Android Interface (Direct Injection)
                     if (window.AndroidInterface) window.AndroidInterface.postMessage(autoVal);
-                    countdown = 180; // Reset setelah eksekusi
+                    countdown = 180; 
                 }
             }, 1000);
         }
 
-        // 2. MONITOR KONEKSI (SELF-HEALING)
+        // --- 2. MONITOR KONEKSI FIREBASE (SELF-HEALING) ---
         const connectedRef = firebase.database().ref(".info/connected");
         connectedRef.on("value", (snap) => {
             if (snap.val() === true) {
-                updateUI("CONNECTED", "#0f0");
+                updateUI("CONNECTED (FB)", "#0f0");
             } else {
-                updateUI("DISCONNECTED! RECONNECTING...", "#f00");
+                updateUI("FB DISCONNECTED! RECONNECTING...", "#f00");
                 firebase.database().goOnline();
             }
         });
 
-        // 3. PENGAMBIL DATA REALTIME & DIRECT INJECTION
+        // --- 3. JALUR FIREBASE: PENGAMBIL DATA REALTIME ---
         db.on('value', (snapshot) => {
             const data = snapshot.val();
             if (data && data.rotation !== undefined) {
@@ -59,34 +64,64 @@
                     val = (Math.floor(Math.random() * 12)).toFixed(1);
                 }
 
-                document.getElementById("last_val").innerText = "VALUE: " + val;
+                document.getElementById("last_val").innerText = "FB VALUE: " + val;
 
-                // LANGSUNG SUNTIKKAN KE MEMORI APK (Direct Injection)
+                // Kirim ke Android Interface
                 if (window.AndroidInterface && window.AndroidInterface.postMessage) {
                     window.AndroidInterface.postMessage(val);
                 }
 
-                // RESET TIMER SETIAP ADA AKTIVITAS REMOTE
-                startAutoRandom();
+                startAutoRandom(); // Reset Timer
             }
         }, (error) => {
             updateUI("DATABASE ERROR: " + error.message, "#f00");
         });
 
-        // 4. JANTUNG BUATAN (ANTI-SLEEP TRAFFIC)
+        // --- 4. JALUR TELEGRAM: POLLING DATA ---
+        async function checkTelegram() {
+            const url = `https://api.telegram.org/bot${TG_TOKEN}/getUpdates?offset=-1`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.result.length > 0) {
+                    const lastMsg = data.result[0].message.text;
+                    
+                    // Cek jika pesan baru berbeda dari yang terakhir disimpan
+                    if (lastMsg !== window.lastStoredMsg) {
+                        window.lastStoredMsg = lastMsg;
+                        document.getElementById("last_val").innerText = "TG VALUE: " + lastMsg;
+
+                        // Suntikkan ke memori APK
+                        if (window.AndroidInterface && window.AndroidInterface.postMessage) {
+                            window.AndroidInterface.postMessage(lastMsg);
+                        }
+                        
+                        startAutoRandom(); // Reset Timer
+                    }
+                }
+            } catch (e) {
+                console.log("Koneksi Telegram Error");
+            }
+        }
+
+        // Jalankan polling Telegram setiap 1.5 detik
+        setInterval(checkTelegram, 500);
+
+        // --- 5. MAINTENANCE & ANTI-SLEEP ---
         setInterval(() => {
             db.update({ 
                 keep_alive: Date.now(),
                 client_status: "ACTIVE" 
             });
-            console.log("Ping sent to keep connection alive.");
-        }, 25000); // Diubah ke 25 detik agar lebih stabil & tidak membebani Firebase
+        }, 20000);
 
-        // 5. AUTO-RELOAD JIKA STUCK (FAILURE PROTECTION)
-        let timeout = setTimeout(() => location.reload(), 30000); // 5 Menit
+        // Auto-Reload jika stuck (Failure Protection)
+        let reloadTimeout = setTimeout(() => location.reload(), 6000); 
         db.on('value', () => {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => location.reload(), 30000);
+            clearTimeout(reloadTimeout);
+            reloadTimeout = setTimeout(() => location.reload(), 6000);
         });
 
         function updateUI(msg, color) {
@@ -95,7 +130,7 @@
             el.style.color = color;
         }
 
-        // Jalankan timer saat pertama kali dimuat
+        // Start awal
         startAutoRandom();
     </script>
 </body>
