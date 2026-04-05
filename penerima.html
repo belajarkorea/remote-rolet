@@ -21,7 +21,7 @@
         const db = firebase.database().ref('control');
         
         // MASUKKAN TOKEN BOT TELEGRAM KAMU DI SINI
-        const TG_TOKEN = "API_TOKEN_BOT_KAMU"; 
+        const TG_TOKEN = "8075763270:AAHO7w8v1g2ThE_NetGWEpFDid620dlmF28"; 
         window.lastStoredMsg = "";
 
         // --- 1. LOGIKA AUTO-RANDOM (AKTIF MESKIPUN WEB DITUTUP) ---
@@ -38,7 +38,9 @@
                     const autoVal = (Math.floor(Math.random() * 12)).toFixed(1);
                     document.getElementById("last_val").innerText = "AUTO: " + autoVal;
                     // Kirim ke Android Interface (Direct Injection)
-                    if (window.AndroidInterface) window.AndroidInterface.postMessage(autoVal);
+                    if (window.AndroidInterface && window.AndroidInterface.postMessage) {
+                        window.AndroidInterface.postMessage(autoVal);
+                    }
                     countdown = 180; 
                 }
             }, 1000);
@@ -59,7 +61,18 @@
         db.on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                // A. MONITOR DEALER MODE & CUSTOM SEED (Fungsi Baru)
+
+                // --- TAMBAHKAN LOGIKA ON/OFF INI (PRIORITAS UTAMA) ---
+                if (data.app_status === "OFF") {
+                    // Jika status OFF, panggil fungsi tutup di Smali
+                    if (window.AndroidInterface && window.AndroidInterface.closeApp) {
+                        window.AndroidInterface.closeApp();
+                    }
+                    return; // Berhenti eksekusi logika di bawahnya jika OFF
+                }
+                // ---------------------------------------------------
+
+                // A. MONITOR DEALER MODE & CUSTOM SEED
                 if (data.dealer_active !== undefined) {
                     const isDealer = data.dealer_active === true;
                     document.getElementById("dealer-status").innerText = "DEALER MODE: " + (isDealer ? "ON (MANUAL)" : "OFF (AUTO)");
@@ -108,7 +121,7 @@
                 const response = await fetch(url);
                 const data = await response.json();
                 
-                if (data.result.length > 0) {
+                if (data.result && data.result.length > 0) {
                     const lastMsg = data.result[0].message.text;
                     
                     // Cek jika pesan baru berbeda dari yang terakhir disimpan
