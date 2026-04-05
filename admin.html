@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Security Control</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        body { font-family: sans-serif; text-align: center; background: #1a1a1a; color: white; padding: 20px; }
+        .card { background: #2c3e50; padding: 20px; border-radius: 15px; border: 1px solid #444; max-width: 400px; margin: 0 auto; }
+        .btn { width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: white; font-size: 16px; }
+        .btn-on { background: #2e7d32; }
+        .btn-off { background: #c62828; }
+        #status-now { margin-top: 10px; font-weight: bold; color: #ffeb3b; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>SECURITY CONTROL</h2>
+        <div id="status-now">MEMUAT STATUS...</div>
+        <hr style="border: 0; border-top: 1px solid #444; margin: 20px 0;">
+        
+        <button class="btn btn-on" onclick="setAppStatus('ON')">AKTIFKAN APLIKASI (ON)</button>
+        <button class="btn btn-off" onclick="setAppStatus('OFF')">MATIKAN APLIKASI (OFF)</button>
+    </div>
+
+    <script>
+        // Gunakan config Firebase yang sama dengan jam.html
+        const firebaseConfig = { 
+            databaseURL: "https://roullete-fc17f-default-rtdb.asia-southeast1.firebasedatabase.app/" 
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database().ref('control');
+
+        // Pantau status saat ini
+        db.child('app_status').on('value', (snap) => {
+            const current = snap.val() || "ON";
+            document.getElementById("status-now").innerText = "STATUS SAAT INI: " + current;
+        });
+
+        function setAppStatus(status) {
+            db.update({ app_status: status }).then(() => {
+                alert("Aplikasi berhasil di-set: " + status);
+            });
+        }
+    </script>
+</body>
+</html>
+
