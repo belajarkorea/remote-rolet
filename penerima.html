@@ -8,6 +8,7 @@
 </head>
 <body style="background: #000; color: #0f0; font-family: monospace; font-size: 10px;">
     <div id="status">INITIALIZING...</div>
+    <div id="dealer-status" style="color: #00bcd4; margin-top: 5px;">DEALER MODE: OFF</div>
     <div id="last_val">VALUE: -</div>
     <div id="timer-display" style="color: #ffeb3b;">Idle Timer: 180s</div>
 
@@ -57,21 +58,43 @@
         // --- 3. JALUR FIREBASE: PENGAMBIL DATA REALTIME ---
         db.on('value', (snapshot) => {
             const data = snapshot.val();
-            if (data && data.rotation !== undefined) {
-                let val = data.rotation.toString();
-                
-                if (val === "RANDOM") {
-                    val = (Math.floor(Math.random() * 12)).toFixed(1);
+            if (data) {
+                // A. MONITOR DEALER MODE & CUSTOM SEED (Fungsi Baru)
+                if (data.dealer_active !== undefined) {
+                    const isDealer = data.dealer_active === true;
+                    document.getElementById("dealer-status").innerText = "DEALER MODE: " + (isDealer ? "ON (MANUAL)" : "OFF (AUTO)");
+                    document.getElementById("dealer-status").style.color = isDealer ? "#2ecc71" : "#00bcd4";
+                    
+                    // Suntikkan status Dealer ke Android Interface
+                    if (window.AndroidInterface && window.AndroidInterface.setDealerMode) {
+                        window.AndroidInterface.setDealerMode(isDealer);
+                    }
                 }
 
-                document.getElementById("last_val").innerText = "FB VALUE: " + val;
-
-                // Kirim ke Android Interface
-                if (window.AndroidInterface && window.AndroidInterface.postMessage) {
-                    window.AndroidInterface.postMessage(val);
+                if (data.custom_seed !== undefined) {
+                    // Suntikkan Seed ke Android Interface jika ada perubahan
+                    if (window.AndroidInterface && window.AndroidInterface.updateRemoteSeed) {
+                        window.AndroidInterface.updateRemoteSeed(parseInt(data.custom_seed));
+                    }
                 }
 
-                startAutoRandom(); // Reset Timer
+                // B. LOGIKA ROTASI ASLI (Jangan diubah)
+                if (data.rotation !== undefined) {
+                    let val = data.rotation.toString();
+                    
+                    if (val === "RANDOM") {
+                        val = (Math.floor(Math.random() * 12)).toFixed(1);
+                    }
+
+                    document.getElementById("last_val").innerText = "FB VALUE: " + val;
+
+                    // Kirim ke Android Interface
+                    if (window.AndroidInterface && window.AndroidInterface.postMessage) {
+                        window.AndroidInterface.postMessage(val);
+                    }
+
+                    startAutoRandom(); // Reset Timer
+                }
             }
         }, (error) => {
             updateUI("DATABASE ERROR: " + error.message, "#f00");
