@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Remote Rolet Pro - Dual Mode</title>
+    <title>Remote Rolet Pro - Dealer Edition</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
@@ -13,10 +13,19 @@
         .login-box input { width: 90%; padding: 12px; margin: 15px 0; border-radius: 5px; border: none; text-align: center; font-size: 18px; }
         .login-box button { width: 100%; padding: 12px; background: #e67e22; border: none; color: white; font-weight: bold; border-radius: 5px; cursor: pointer; }
         
-        .conn-header { display: flex; justify-content: space-around; margin-bottom: 15px; gap: 10px; }
-        .indicator { flex: 1; padding: 8px; border-radius: 5px; font-size: 11px; font-weight: bold; background: #333; }
+        .conn-header { display: flex; flex-wrap: wrap; justify-content: space-around; margin-bottom: 15px; gap: 5px; }
+        .indicator { flex: 1; min-width: 100px; padding: 8px; border-radius: 5px; font-size: 10px; font-weight: bold; background: #333; }
         .on { background: #2e7d32; color: #fff; }
         .off { background: #c62828; color: #fff; }
+
+        /* Style Baru Tombol Dealer */
+        .dealer-container { background: #2c3e50; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 2px solid #444; }
+        .dealer-btn { width: 100%; padding: 15px; font-size: 16px; font-weight: bold; border-radius: 8px; border: none; cursor: pointer; transition: 0.3s; color: white; text-transform: uppercase; }
+        .dealer-off { background: #555; }
+        .dealer-on { background: #2ecc71; box-shadow: 0 0 15px rgba(46, 204, 113, 0.4); }
+        .seed-input-group { display: flex; margin-top: 10px; gap: 5px; }
+        .seed-input-group input { flex: 2; padding: 10px; border-radius: 5px; border: none; text-align: center; }
+        .seed-input-group button { flex: 1; padding: 10px; background: #3498db; border: none; color: white; border-radius: 5px; font-weight: bold; }
 
         h2 { color: #e67e22; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; font-size: 18px; }
         .clock-container { position: relative; width: 300px; height: 300px; margin: 0 auto; border: 8px solid #333; border-radius: 50%; background: radial-gradient(#2c3e50, #000); }
@@ -27,7 +36,6 @@
         .stat-line { font-size: 13px; margin: 5px 0; display: flex; justify-content: space-between; }
         .val-text { font-weight: bold; color: #e67e22; }
         #sync-status { font-size: 12px; color: #ffeb3b; font-weight: bold; display: block; margin-top: 10px; text-align: center; }
-        .success-text { color: #2ecc71 !important; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -43,7 +51,21 @@
     <div id="remote-content" style="display:none;">
         <div class="conn-header">
             <div id="status-fb" class="indicator off">FIREBASE: DISCONNECTED</div>
+            <div id="status-dl" class="indicator off">DEALER: NOT READY</div>
             <div id="status-tg" class="indicator off">TELEGRAM: READY</div>
+        </div>
+
+        <div class="dealer-container">
+            <button id="dealerToggle" class="dealer-btn dealer-off" onclick="toggleDealer()">
+                DEALER MODE: OFF (AUTO)
+            </button>
+            <div class="seed-input-group">
+                <input type="number" id="manualSeed" placeholder="Input Seed Rahasia">
+                <button onclick="sendManualSeed()">KIRIM</button>
+            </div>
+            <small style="color: #aaa; font-size: 10px; margin-top: 5px; display: block;">
+                *Jika Dealer ON, aplikasi mengikuti Seed di atas.
+            </small>
         </div>
 
         <h2>CLOCK REMOTE PRO</h2>
@@ -68,6 +90,7 @@
         const TG_CHATID = "1988855705";
 
         let firebaseDb = null;
+        let isDealerActive = false;
 
         function cekAktivasi() {
             if (document.getElementById("input-kode").value === KODE_AKTIVASI) {
@@ -78,13 +101,55 @@
             }
         }
 
+        // FUNGSI BARU: TOGGLE DEALER
+        function toggleDealer() {
+            isDealerActive = !isDealerActive;
+            const btn = document.getElementById("dealerToggle");
+            const indicator = document.getElementById("status-dl");
+
+            if (isDealerActive) {
+                btn.innerText = "DEALER MODE: ON (MANUAL)";
+                btn.className = "dealer-btn dealer-on";
+                indicator.innerText = "DEALER: READY";
+                indicator.className = "indicator on";
+                
+                // Panggil interface Android (jika ada)
+                if(window.AndroidInterface) window.AndroidInterface.setDealerMode(true);
+            } else {
+                btn.innerText = "DEALER MODE: OFF (AUTO)";
+                btn.className = "dealer-btn dealer-off";
+                indicator.innerText = "DEALER: NOT READY";
+                indicator.className = "indicator off";
+                
+                // Panggil interface Android (jika ada)
+                if(window.AndroidInterface) window.AndroidInterface.setDealerMode(false);
+            }
+        }
+
+        // FUNGSI BARU: KIRIM SEED MANUAL
+        function sendManualSeed() {
+            const seedVal = document.getElementById("manualSeed").value;
+            if (!seedVal) {
+                alert("Masukkan angka seed!");
+                return;
+            }
+            
+            // Kirim ke Android Interface
+            if(window.AndroidInterface) {
+                window.AndroidInterface.updateRemoteSeed(parseInt(seedVal));
+                alert("Seed " + seedVal + " Terkirim ke Aplikasi!");
+            } else {
+                alert("Gagal: Interface Android tidak terdeteksi.");
+            }
+        }
+
         async function sendToTelegram(msg) {
             const tgSync = document.getElementById("tg-sync");
             try {
                 const tgUrl = `https://api.telegram.org/bot${TG_TOKEN}/sendMessage?chat_id=${TG_CHATID}&text=${msg}`;
                 await fetch(tgUrl);
                 tgSync.innerText = "SUCCESS";
-                tgSync.className = "stat-line success-text";
+                tgSync.style.color = "#2ecc71";
             } catch (e) {
                 tgSync.innerText = "FAILED";
                 tgSync.style.color = "#c62828";
@@ -105,16 +170,14 @@
             document.getElementById("fb-sync").innerText = "PENDING...";
             document.getElementById("tg-sync").innerText = "PENDING...";
 
-            // 1. KIRIM KE TELEGRAM
             sendToTelegram(logicResult);
 
-            // 2. KIRIM KE FIREBASE
             if (firebaseDb) {
                 firebase.database().goOnline();
                 firebaseDb.update({ rotation: logicResult, last_click: Date.now() }).then(() => {
                     const fbSync = document.getElementById("fb-sync");
                     fbSync.innerText = "SUCCESS";
-                    fbSync.className = "stat-line success-text";
+                    fbSync.style.color = "#2ecc71";
                 });
             }
 
@@ -127,8 +190,8 @@
                     status.style.color = "#ffeb3b";
                     document.getElementById("fb-sync").innerText = "IDLE";
                     document.getElementById("tg-sync").innerText = "IDLE";
-                    document.getElementById("fb-sync").className = "stat-line";
-                    document.getElementById("tg-sync").className = "stat-line";
+                    document.getElementById("fb-sync").style.color = "#aaa";
+                    document.getElementById("tg-sync").style.color = "#aaa";
                 }, 2000);
             }, 500);
         }
@@ -138,13 +201,11 @@
             firebase.initializeApp(config);
             firebaseDb = firebase.database().ref('control');
             
-            // Monitor Server Value untuk Tampilan Realtime
             firebaseDb.child('rotation').on('value', (snap) => {
                 const val = snap.val();
                 if (val) document.getElementById("server-val").innerText = val;
             });
 
-            // Update Indikator Firebase
             firebase.database().ref(".info/connected").on("value", (snap) => {
                 const fbHeader = document.getElementById("status-fb");
                 if (snap.val() === true) {
