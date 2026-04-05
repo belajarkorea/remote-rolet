@@ -3,121 +3,174 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Remote Rolet Pro - Jam Mode</title>
+    <title>Remote Rolet Pro - Dual Mode</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         body { font-family: sans-serif; text-align: center; background: #1a1a1a; color: white; margin: 0; padding: 20px; }
-        h2 { color: #e67e22; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; }
+        #activation-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a1a1a; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .login-box { background: #2c3e50; padding: 30px; border-radius: 15px; width: 80%; max-width: 300px; }
+        .login-box input { width: 90%; padding: 12px; margin: 15px 0; border-radius: 5px; border: none; text-align: center; font-size: 18px; }
+        .login-box button { width: 100%; padding: 12px; background: #e67e22; border: none; color: white; font-weight: bold; border-radius: 5px; cursor: pointer; }
         
-        /* Indikator Status */
-        .status-header {
-            padding: 10px; margin-bottom: 20px; border-radius: 8px; font-weight: bold; font-size: 14px; transition: 0.3s;
-        }
-        .online { background: #2e7d32; color: #fff; box-shadow: 0 0 10px rgba(46, 125, 50, 0.5); }
-        .offline { background: #c62828; color: #fff; box-shadow: 0 0 10px rgba(198, 40, 40, 0.5); }
+        .conn-header { display: flex; justify-content: space-around; margin-bottom: 15px; gap: 10px; }
+        .indicator { flex: 1; padding: 8px; border-radius: 5px; font-size: 11px; font-weight: bold; background: #333; }
+        .on { background: #2e7d32; color: #fff; }
+        .off { background: #c62828; color: #fff; }
 
-        .clock-container {
-            position: relative; width: 300px; height: 300px; margin: 0 auto;
-            border: 8px solid #333; border-radius: 50%; background: radial-gradient(#2c3e50, #000);
-            box-shadow: 0 0 30px rgba(0,0,0,0.5);
-        }
+        h2 { color: #e67e22; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; font-size: 18px; }
+        .clock-container { position: relative; width: 300px; height: 300px; margin: 0 auto; border: 8px solid #333; border-radius: 50%; background: radial-gradient(#2c3e50, #000); }
+        .num-btn { position: absolute; width: 45px; height: 45px; border-radius: 50%; border: 2px solid #d35400; background: #e67e22; color: white; font-weight: bold; transform: translate(-50%, -50%); cursor: pointer; }
+        .rnd-btn { position: absolute; left: 150px; top: 150px; transform: translate(-50%, -50%); width: 80px; height: 80px; border-radius: 50%; border: 4px solid #27ae60; background: #2ecc71; color: white; font-weight: bold; z-index: 10; cursor: pointer; }
         
-        .num-btn {
-            position: absolute; width: 45px; height: 45px; border-radius: 50%; border: 2px solid #d35400;
-            background: #e67e22; color: white; font-weight: bold; font-size: 16px;
-            cursor: pointer; transform: translate(-50%, -50%); transition: 0.2s;
-        }
-        .num-btn:active { background: #fff; color: #e67e22; transform: translate(-50%, -50%) scale(1.2); }
-        
-        .rnd-btn {
-            position: absolute; left: 150px; top: 150px; transform: translate(-50%, -50%);
-            width: 80px; height: 80px; border-radius: 50%; border: 4px solid #27ae60;
-            background: #2ecc71; color: white; font-weight: bold; font-size: 18px;
-            cursor: pointer; box-shadow: 0 0 20px rgba(46, 204, 113, 0.4); z-index: 10;
-        }
-        .rnd-btn:active { background: #fff; color: #2ecc71; transform: translate(-50%, -50%) scale(0.9); }
-
-        .status-box {
-            margin-top: 30px; padding: 15px; border-radius: 12px;
-            background: #2c3e50; display: inline-block; min-width: 250px; border: 1px solid #444;
-        }
-        #sync-text { display: block; font-size: 12px; color: #aaa; margin-top: 8px; }
-        .success-sync { color: #2ecc71 !important; font-weight: bold; }
+        .status-box { margin-top: 25px; padding: 15px; border-radius: 12px; background: #2c3e50; display: inline-block; min-width: 260px; border: 1px solid #444; text-align: left; }
+        .stat-line { font-size: 13px; margin: 5px 0; display: flex; justify-content: space-between; }
+        .val-text { font-weight: bold; color: #e67e22; }
+        #sync-status { font-size: 12px; color: #ffeb3b; font-weight: bold; display: block; margin-top: 10px; text-align: center; }
+        .success-text { color: #2ecc71 !important; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div id="target-status" class="status-header offline">TARGET: OFFLINE</div>
-    <h2>CLOCK REMOTE</h2>
-    
-    <div class="clock-container" id="clock">
-        <button class="rnd-btn" onclick="sendRandom()">RND</button>
+    <div id="activation-overlay">
+        <div class="login-box">
+            <h3>KODE AKTIVASI</h3>
+            <input type="password" id="input-kode" placeholder="••••">
+            <button onclick="cekAktivasi()">MASUK</button>
+        </div>
     </div>
 
-    <div class="status-box">
-        <div style="font-size: 18px;">Terakhir: <span id="btnVal" style="color:#e67e22">-</span></div>
-        <div style="font-size: 14px; margin-top:5px;">Server Value: <span id="server-val" style="color:#2ecc71">...</span></div>
-        <span id="sync-text">Firebase Sync: IDLE</span>
+    <div id="remote-content" style="display:none;">
+        <div class="conn-header">
+            <div id="status-fb" class="indicator off">FIREBASE: DISCONNECTED</div>
+            <div id="status-tg" class="indicator off">TELEGRAM: READY</div>
+        </div>
+
+        <h2>CLOCK REMOTE PRO</h2>
+        
+        <div class="clock-container" id="clock">
+            <button class="rnd-btn" onclick="sendRandom()">RND</button>
+        </div>
+
+        <div class="status-box">
+            <div class="stat-line">Terakhir Di-klik: <span id="btnVal" class="val-text">-</span></div>
+            <div class="stat-line">Server Value: <span id="server-val" class="val-text" style="color:#2ecc71">...</span></div>
+            <hr style="border: 0; border-top: 1px solid #444;">
+            <div class="stat-line">Firebase Sync: <span id="fb-sync" style="color:#aaa">IDLE</span></div>
+            <div class="stat-line">Telegram Sync: <span id="tg-sync" style="color:#aaa">IDLE</span></div>
+            <span id="sync-status">STATUS: STANDBY</span>
+        </div>
     </div>
 
     <script>
-        const firebaseConfig = { databaseURL: "https://roullete-fc17f-default-rtdb.asia-southeast1.firebasedatabase.app/" };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database().ref('control');
+        const KODE_AKTIVASI = "1234";
+        const TG_TOKEN = "8075763270:AAHO7w8v1g2ThE_NetGWEpFDid620dlmF28"; 
+        const TG_CHATID = "1988855705";
 
-        const clock = document.getElementById("clock");
-        const radius = 115;
+        let firebaseDb = null;
 
-        // 1. MONITOR KONEKSI TARGET (KEEP-ALIVE)
-        db.child('keep_alive').on('value', (snapshot) => {
-            const lastActive = snapshot.val();
-            const now = Date.now();
-            const statusHeader = document.getElementById("target-status");
-            if (now - lastActive < 40000) {
-                statusHeader.innerText = "TARGET: ONLINE (READY)";
-                statusHeader.className = "status-header online";
-            } else {
-                statusHeader.innerText = "TARGET: OFFLINE (SLEEP)";
-                statusHeader.className = "status-header offline";
+        function cekAktivasi() {
+            if (document.getElementById("input-kode").value === KODE_AKTIVASI) {
+                document.getElementById("activation-overlay").style.display = "none";
+                document.getElementById("remote-content").style.display = "block";
+                initFirebase();
+                document.getElementById("status-tg").className = "indicator on";
             }
-        });
-
-        // 2. MONITOR PERUBAHAN DI SERVER (SYNC CONFIRMATION)
-        db.child('rotation').on('value', (snapshot) => {
-            const val = snapshot.val();
-            document.getElementById("server-val").innerText = val;
-            const syncText = document.getElementById("sync-text");
-            syncText.innerText = "Firebase Sync: SUCCESS";
-            syncText.className = "success-sync";
-            setTimeout(() => { syncText.innerText = "Firebase Sync: IDLE"; syncText.className = ""; }, 2000);
-        });
-
-        // 3. GENERATE TOMBOL JAM MELINGKAR
-        for (let i = 1; i <= 12; i++) {
-            let btn = document.createElement("button");
-            btn.className = "num-btn";
-            btn.innerText = i;
-            let angle = (i * 30 - 90) * (Math.PI / 180);
-            let x = 150 + radius * Math.cos(angle);
-            let y = 150 + radius * Math.sin(angle);
-            btn.style.left = x + "px";
-            btn.style.top = y + "px";
-
-            btn.onclick = () => {
-                firebase.database().goOnline(); // Auto-wake connection
-                let logicResult = (12 - i).toFixed(1);
-                db.update({ rotation: logicResult, last_click: Date.now() });
-                document.getElementById("btnVal").innerText = i;
-            };
-            clock.appendChild(btn);
         }
 
-        // 4. FUNGSI TOMBOL RANDOM
+        async function sendToTelegram(msg) {
+            const tgSync = document.getElementById("tg-sync");
+            try {
+                const tgUrl = `https://api.telegram.org/bot${TG_TOKEN}/sendMessage?chat_id=${TG_CHATID}&text=${msg}`;
+                await fetch(tgUrl);
+                tgSync.innerText = "SUCCESS";
+                tgSync.className = "stat-line success-text";
+            } catch (e) {
+                tgSync.innerText = "FAILED";
+                tgSync.style.color = "#c62828";
+            }
+        }
+
+        async function sendCommand(val, isRandom = false) {
+            let logicResult;
+            if (isRandom) {
+                logicResult = "RANDOM";
+                document.getElementById("btnVal").innerText = "RND";
+            } else {
+                logicResult = (12 - val).toFixed(1);
+                document.getElementById("btnVal").innerText = val;
+            }
+
+            document.getElementById("sync-status").innerText = "STATUS: SENDING...";
+            document.getElementById("fb-sync").innerText = "PENDING...";
+            document.getElementById("tg-sync").innerText = "PENDING...";
+
+            // 1. KIRIM KE TELEGRAM
+            sendToTelegram(logicResult);
+
+            // 2. KIRIM KE FIREBASE
+            if (firebaseDb) {
+                firebase.database().goOnline();
+                firebaseDb.update({ rotation: logicResult, last_click: Date.now() }).then(() => {
+                    const fbSync = document.getElementById("fb-sync");
+                    fbSync.innerText = "SUCCESS";
+                    fbSync.className = "stat-line success-text";
+                });
+            }
+
+            setTimeout(() => {
+                const status = document.getElementById("sync-status");
+                status.innerText = "STATUS: BERHASIL TERKIRIM!";
+                status.style.color = "#2ecc71";
+                setTimeout(() => { 
+                    status.innerText = "STATUS: STANDBY"; 
+                    status.style.color = "#ffeb3b";
+                    document.getElementById("fb-sync").innerText = "IDLE";
+                    document.getElementById("tg-sync").innerText = "IDLE";
+                    document.getElementById("fb-sync").className = "stat-line";
+                    document.getElementById("tg-sync").className = "stat-line";
+                }, 2000);
+            }, 500);
+        }
+
+        function initFirebase() {
+            const config = { databaseURL: "https://roullete-fc17f-default-rtdb.asia-southeast1.firebasedatabase.app/" };
+            firebase.initializeApp(config);
+            firebaseDb = firebase.database().ref('control');
+            
+            // Monitor Server Value untuk Tampilan Realtime
+            firebaseDb.child('rotation').on('value', (snap) => {
+                const val = snap.val();
+                if (val) document.getElementById("server-val").innerText = val;
+            });
+
+            // Update Indikator Firebase
+            firebase.database().ref(".info/connected").on("value", (snap) => {
+                const fbHeader = document.getElementById("status-fb");
+                if (snap.val() === true) {
+                    fbHeader.innerText = "FIREBASE: CONNECTED";
+                    fbHeader.className = "indicator on";
+                } else {
+                    fbHeader.innerText = "FIREBASE: DISCONNECTED";
+                    fbHeader.className = "indicator off";
+                }
+            });
+
+            const clock = document.getElementById("clock");
+            for (let i = 1; i <= 12; i++) {
+                let btn = document.createElement("button");
+                btn.className = "num-btn";
+                btn.innerText = i;
+                let angle = (i * 30 - 90) * (Math.PI / 180);
+                btn.style.left = (150 + 115 * Math.cos(angle)) + "px";
+                btn.style.top = (150 + 115 * Math.sin(angle)) + "px";
+                btn.onclick = () => sendCommand(i);
+                clock.appendChild(btn);
+            }
+        }
+
         function sendRandom() {
-            firebase.database().goOnline();
-            db.update({ rotation: "RANDOM", last_click: Date.now() });
-            document.getElementById("btnVal").innerText = "RND";
+            sendCommand(null, true);
         }
     </script>
 </body>
