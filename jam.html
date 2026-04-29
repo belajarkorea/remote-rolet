@@ -84,12 +84,10 @@
         const TG_CHATID = "1988855705";
 
         let firebaseDb = null;
-        let currentStatus = "ON"; // Global status untuk client A
+        let currentStatus = "ON"; 
 
-        // AUTO REFRESH 1 MENIT
         setInterval(() => { location.reload(); }, 60000);
 
-        // PERSISTENT LOGIN (Client A)
         window.onload = function() {
             if (localStorage.getItem("isLoggedInA") === "true") {
                 tampilkanRemote();
@@ -133,7 +131,6 @@
                 document.getElementById("btnVal").innerText = val;
             }
 
-            // LOGIKA SILENT: Jika OFF, beri ilusi berhasil tapi jangan kirim data
             if (currentStatus === "OFF") {
                 document.getElementById("sync-status").innerText = "STATUS: BERHASIL TERKIRIM!";
                 document.getElementById("sync-status").style.color = "#2ecc71";
@@ -141,10 +138,9 @@
                     document.getElementById("sync-status").innerText = "STATUS: STANDBY"; 
                     document.getElementById("sync-status").style.color = "#ffeb3b";
                 }, 2000);
-                return; // Berhenti di sini, jangan akses Firebase/Telegram
+                return; 
             }
 
-            // JIKA ON, JALANKAN NORMAL
             document.getElementById("sync-status").innerText = "STATUS: SENDING...";
             document.getElementById("fb-sync").innerText = "PENDING...";
             document.getElementById("tg-sync").innerText = "PENDING...";
@@ -181,34 +177,34 @@
             firebase.initializeApp(config);
             firebaseDb = firebase.database().ref('control');
             
-            // LISTENER STATUS KHUSUS CLIENT A
+            // LISTENER GABUNGAN (Mengatasi Race Condition)
             firebaseDb.on('value', (snap) => {
                 const data = snap.val();
                 if (!data) return;
 
-                // Cek App Kill Switch
+                // 1. App Kill Switch
                 if (data.app_status === "OFF") {
                     if (window.AndroidInterface && window.AndroidInterface.closeApp) {
                         window.AndroidInterface.closeApp();
                     }
                 }
 
-                // Update variabel currentStatus tanpa mengubah UI tombol
+                // 2. Set Status (Tanpa merubah UI tombol)
                 currentStatus = data.clientA_status || "ON";
-            });
 
-            // LISTENER ROTATION UNTUK SERVER VALUE
-            firebaseDb.child('rotation').on('value', (snap) => {
-                // JIKA OFF, BEKUKAN TAMPILAN SERVER VALUE
-                if (currentStatus === "OFF") return; 
-
-                const val = snap.val();
-                if (val) {
-                    document.getElementById("server-val").innerText = val;
+                // 3. LOGIKA SERVER VALUE (Tahan nilai jika OFF)
+                if (currentStatus === "ON") {
+                    if (data.rotation) {
+                        document.getElementById("server-val").innerText = data.rotation;
+                        localStorage.setItem("frozenValA", data.rotation); // Simpan nilai asli
+                    }
+                } else {
+                    // Jika OFF, ambil nilai beku dari memori lokal dan paksakan ke layar
+                    const frozen = localStorage.getItem("frozenValA") || "...";
+                    document.getElementById("server-val").innerText = frozen;
                 }
             });
 
-            // LISTENER KONEKSI FIREBASE
             firebase.database().ref(".info/connected").on("value", (snap) => {
                 const fbHeader = document.getElementById("status-fb");
                 if (snap.val() === true) {
@@ -220,7 +216,6 @@
                 }
             });
 
-            // PEMBUATAN TOMBOL JAM
             const clock = document.getElementById("clock");
             for (let i = 1; i <= 12; i++) {
                 let btn = document.createElement("button");
