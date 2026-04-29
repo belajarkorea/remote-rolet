@@ -3,64 +3,45 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Control Center</title>
+    <title>Admin Multi-Client Control</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         body { font-family: sans-serif; text-align: center; background: #1a1a1a; color: white; padding: 20px; }
-        .card { background: #2c3e50; padding: 20px; border-radius: 15px; border: 1px solid #444; max-width: 400px; margin: 0 auto; margin-bottom: 20px; }
-        .btn { width: 100%; padding: 15px; margin: 5px 0; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: white; font-size: 14px; }
+        .card { background: #2c3e50; padding: 20px; border-radius: 15px; border: 1px solid #444; max-width: 400px; margin: 0 auto 20px; }
+        .btn { width: 100%; padding: 12px; margin: 5px 0; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: white; }
         .btn-on { background: #2e7d32; }
         .btn-off { background: #c62828; }
-        .status-text { margin-top: 10px; font-weight: bold; color: #ffeb3b; }
-        h3 { margin-bottom: 10px; color: #ddd; font-size: 16px; }
+        .status-text { font-weight: bold; color: #ffeb3b; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h3>APLIKASI STATUS</h3>
-        <div id="app-status-now" class="status-text">MEMUAT...</div>
-        <button class="btn btn-on" onclick="setAppStatus('ON')">AKTIFKAN APK (ON)</button>
-        <button class="btn btn-off" onclick="setAppStatus('OFF')">MATIKAN APK (OFF)</button>
+        <h3>CLIENT A (jam.html)</h3>
+        <div id="status-a" class="status-text">MEMUAT...</div>
+        <button class="btn btn-on" onclick="setStatus('clientA_status', 'ON')">AKTIFKAN A</button>
+        <button class="btn btn-off" onclick="setStatus('clientA_status', 'OFF')">MATIKAN A</button>
     </div>
 
     <div class="card">
-        <h3>REMOTE (JAM.HTML) STATUS</h3>
-        <div id="remote-status-now" class="status-text">MEMUAT...</div>
-        <button class="btn btn-on" onclick="setRemoteStatus('ON')">AKTIFKAN FUNGSI REMOTE</button>
-        <button class="btn btn-off" onclick="setRemoteStatus('OFF')">NONAKTIFKAN FUNGSI REMOTE</button>
+        <h3>CLIENT B (adm1.html)</h3>
+        <div id="status-b" class="status-text">MEMUAT...</div>
+        <button class="btn btn-on" onclick="setStatus('clientB_status', 'ON')">AKTIFKAN B</button>
+        <button class="btn btn-off" onclick="setStatus('clientB_status', 'OFF')">MATIKAN B</button>
     </div>
 
     <script>
-        const firebaseConfig = { 
-            databaseURL: "https://roullete-fc17f-default-rtdb.asia-southeast1.firebasedatabase.app/" 
-        };
-        firebase.initializeApp(firebaseConfig);
+        const config = { databaseURL: "https://roullete-fc17f-default-rtdb.asia-southeast1.firebasedatabase.app/" };
+        firebase.initializeApp(config);
         const db = firebase.database().ref('control');
 
-        // Listener Status Aplikasi
-        db.child('app_status').on('value', (snap) => {
-            document.getElementById("app-status-now").innerText = "STATUS APK: " + (snap.val() || "ON");
-        });
+        // Listener untuk update UI admin
+        db.child('clientA_status').on('value', (s) => document.getElementById('status-a').innerText = "STATUS: " + (s.val() || "ON"));
+        db.child('clientB_status').on('value', (s) => document.getElementById('status-b').innerText = "STATUS: " + (s.val() || "ON"));
 
-        // Listener Status Remote
-        db.child('remote_status').on('value', (snap) => {
-            document.getElementById("remote-status-now").innerText = "STATUS REMOTE: " + (snap.val() || "ON");
-        });
-
-        // Fungsi Update Aplikasi
-        function setAppStatus(status) {
-            db.update({ app_status: status }).then(() => {
-                alert("Aplikasi status set to: " + status);
-            });
-        }
-
-        // Fungsi Update Remote
-        function setRemoteStatus(status) {
-            db.update({ remote_status: status }).then(() => {
-                alert("Remote status set to: " + status);
-            });
+        function setStatus(target, val) {
+            db.update({ [target]: val }).then(() => alert(target + " diset ke " + val));
         }
     </script>
 </body>
