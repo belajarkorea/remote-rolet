@@ -2,31 +2,37 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Multi-Client Control</title>
+    <title>Admin Control Center</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        body { font-family: sans-serif; text-align: center; background: #1a1a1a; color: white; padding: 20px; }
-        .card { background: #2c3e50; padding: 20px; border-radius: 15px; border: 1px solid #444; max-width: 400px; margin: 0 auto 20px; }
-        .btn { width: 100%; padding: 12px; margin: 5px 0; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: white; }
+        body { font-family: sans-serif; text-align: center; background: #121212; color: white; padding: 20px; }
+        .card { background: #1e1e1e; padding: 20px; border-radius: 12px; border: 1px solid #333; max-width: 400px; margin: 0 auto 15px; }
+        .btn { width: 100%; padding: 12px; margin: 5px 0; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: white; }
         .btn-on { background: #2e7d32; }
         .btn-off { background: #c62828; }
-        .status-text { font-weight: bold; color: #ffeb3b; margin-bottom: 10px; }
+        .status { font-weight: bold; color: #ffeb3b; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h3>CLIENT A (jam.html)</h3>
-        <div id="status-a" class="status-text">MEMUAT...</div>
+        <h3>GLOBAL KILL SWITCH (APK)</h3>
+        <div id="status-app" class="status">MEMUAT...</div>
+        <button class="btn btn-on" onclick="setStatus('app_status', 'ON')">APK AKTIF (ON)</button>
+        <button class="btn btn-off" onclick="setStatus('app_status', 'OFF')">APK MATI (OFF)</button>
+    </div>
+
+    <div class="card">
+        <h3>REMOTE CLIENT A (jam.html)</h3>
+        <div id="status-a" class="status">MEMUAT...</div>
         <button class="btn btn-on" onclick="setStatus('clientA_status', 'ON')">AKTIFKAN A</button>
         <button class="btn btn-off" onclick="setStatus('clientA_status', 'OFF')">MATIKAN A</button>
     </div>
 
     <div class="card">
-        <h3>CLIENT B (adm1.html)</h3>
-        <div id="status-b" class="status-text">MEMUAT...</div>
+        <h3>REMOTE CLIENT B (adm1.html)</h3>
+        <div id="status-b" class="status">MEMUAT...</div>
         <button class="btn btn-on" onclick="setStatus('clientB_status', 'ON')">AKTIFKAN B</button>
         <button class="btn btn-off" onclick="setStatus('clientB_status', 'OFF')">MATIKAN B</button>
     </div>
@@ -36,12 +42,13 @@
         firebase.initializeApp(config);
         const db = firebase.database().ref('control');
 
-        // Listener untuk update UI admin
+        // Monitoring status
+        db.child('app_status').on('value', (s) => document.getElementById('status-app').innerText = "STATUS: " + (s.val() || "ON"));
         db.child('clientA_status').on('value', (s) => document.getElementById('status-a').innerText = "STATUS: " + (s.val() || "ON"));
         db.child('clientB_status').on('value', (s) => document.getElementById('status-b').innerText = "STATUS: " + (s.val() || "ON"));
 
-        function setStatus(target, val) {
-            db.update({ [target]: val }).then(() => alert(target + " diset ke " + val));
+        function setStatus(key, val) {
+            db.update({ [key]: val }).then(() => alert(key + " diubah ke " + val));
         }
     </script>
 </body>
