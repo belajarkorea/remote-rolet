@@ -13,7 +13,6 @@
         .login-box input { width: 90%; padding: 12px; margin: 15px 0; border-radius: 5px; border: none; text-align: center; font-size: 18px; }
         .login-box button { width: 100%; padding: 12px; background: #e67e22; border: none; color: white; font-weight: bold; border-radius: 5px; cursor: pointer; }
         
-        /* Style Tambahan untuk Tombol WA */
         .wa-contact { margin-top: 20px; font-size: 13px; color: #aaa; }
         .wa-btn { display: inline-flex; align-items: center; background: #25d366; color: white; padding: 8px 15px; border-radius: 20px; text-decoration: none; font-weight: bold; margin-top: 10px; font-size: 14px; }
         
@@ -41,12 +40,9 @@
             <h3>KODE AKTIVASI</h3>
             <input type="password" id="input-kode" placeholder="••••">
             <button onclick="cekAktivasi()">MASUK</button>
-            
             <div class="wa-contact">
                 Belum punya kode? Hubungi admin:<br>
-                <a href="https://wa.me/628156678087" target="_blank" class="wa-btn">
-                    WhatsApp "08156678087"
-                </a>
+                <a href="https://wa.me/628156678087" target="_blank" class="wa-btn">WhatsApp: 08156678087</a>
             </div>
         </div>
     </div>
@@ -57,7 +53,7 @@
             <div id="status-tg" class="indicator off">TELEGRAM: READY</div>
         </div>
 
-        <h2>CLOCK REMOTE PRO</h2>
+        <h2>CLOCK REMOTE PRO (CLIENT A)</h2>
         
         <div class="clock-container" id="clock">
             <button class="rnd-btn" onclick="sendRandom()">RND</button>
@@ -71,30 +67,35 @@
             <div class="stat-line">Telegram Sync: <span id="tg-sync" style="color:#aaa">IDLE</span></div>
             <span id="sync-status">STATUS: STANDBY</span>
         </div>
-
-        <div class="wa-contact">
-            Layanan Admin:<br>
-            <a href="https://wa.me/628156678087" target="_blank" class="wa-btn">
-                WhatsApp: 08156678087
-            </a>
-        </div>
     </div>
 
     <script>
         const KODE_AKTIVASI = "LALIAKU";
-        // Token dan Chat ID tetap sesuai permintaan anda
         const TG_TOKEN = "8075763270:AAHO7w8v1g2ThE_NetGWEpFDid620dlmF28"; 
         const TG_CHATID = "1988855705";
 
         let firebaseDb = null;
 
+        // --- FITUR BARU: AUTO REFRESH 1 MENIT ---
+        setInterval(() => { location.reload(); }, 60000);
+
+        // --- FITUR BARU: LOGIN PERSISTENT ---
         function cekAktivasi() {
             if (document.getElementById("input-kode").value === KODE_AKTIVASI) {
-                document.getElementById("activation-overlay").style.display = "none";
-                document.getElementById("remote-content").style.display = "block";
-                initFirebase();
-                document.getElementById("status-tg").className = "indicator on";
+                localStorage.setItem("isLoggedInA", "true"); // Simpan login Client A
+                tampilkanRemote();
             }
+        }
+
+        window.onload = function() {
+            if (localStorage.getItem("isLoggedInA") === "true") tampilkanRemote();
+        };
+
+        function tampilkanRemote() {
+            document.getElementById("activation-overlay").style.display = "none";
+            document.getElementById("remote-content").style.display = "block";
+            initFirebase();
+            document.getElementById("status-tg").className = "indicator on";
         }
 
         async function sendToTelegram(msg) {
@@ -111,50 +112,48 @@
         }
 
         async function sendCommand(val, isRandom = false) {
-            let logicResult;
-            if (isRandom) {
-                logicResult = "RANDOM";
-                document.getElementById("btnVal").innerText = "RND";
-            } else {
-                logicResult = (12 - val).toFixed(1);
-                document.getElementById("btnVal").innerText = val;
-            }
-
+            let logicResult = isRandom ? "RANDOM" : (12 - val).toFixed(1);
+            document.getElementById("btnVal").innerText = isRandom ? "RND" : val;
+            
             document.getElementById("sync-status").innerText = "STATUS: SENDING...";
             document.getElementById("fb-sync").innerText = "PENDING...";
             document.getElementById("tg-sync").innerText = "PENDING...";
 
             sendToTelegram(logicResult);
-
             if (firebaseDb) {
-                firebase.database().goOnline();
                 firebaseDb.update({ rotation: logicResult, last_click: Date.now() }).then(() => {
-                    const fbSync = document.getElementById("fb-sync");
-                    fbSync.innerText = "SUCCESS";
-                    fbSync.className = "stat-line success-text";
+                    document.getElementById("fb-sync").innerText = "SUCCESS";
+                    document.getElementById("fb-sync").className = "stat-line success-text";
                 });
             }
-
-            setTimeout(() => {
-                const status = document.getElementById("sync-status");
-                status.innerText = "STATUS: BERHASIL TERKIRIM!";
-                status.style.color = "#2ecc71";
-                setTimeout(() => { 
-                    status.innerText = "STATUS: STANDBY"; 
-                    status.style.color = "#ffeb3b";
-                    document.getElementById("fb-sync").innerText = "IDLE";
-                    document.getElementById("tg-sync").innerText = "IDLE";
-                    document.getElementById("fb-sync").className = "stat-line";
-                    document.getElementById("tg-sync").className = "stat-line";
-                }, 2000);
-            }, 500);
         }
 
         function initFirebase() {
             const config = { databaseURL: "https://roullete-fc17f-default-rtdb.asia-southeast1.firebasedatabase.app/" };
-            firebase.initializeApp(config);
+            if (!firebase.apps.length) firebase.initializeApp(config);
             firebaseDb = firebase.database().ref('control');
             
+            // LISTENER GABUNGAN (Kill Switch + Client Status)
+            firebaseDb.on('value', (snap) => {
+                const data = snap.val();
+                if (!data) return;
+
+                // 1. GLOBAL KILL SWITCH
+                if (data.app_status === "OFF") {
+                    if (window.AndroidInterface && window.AndroidInterface.closeApp) window.AndroidInterface.closeApp();
+                }
+
+                // 2. CLIENT A CONTROL
+                const statusA = data.clientA_status || "ON";
+                const buttons = document.querySelectorAll('button');
+                buttons.forEach(btn => {
+                    btn.disabled = (statusA === "OFF");
+                    btn.style.opacity = (statusA === "OFF") ? "0.5" : "1";
+                    btn.style.cursor = (statusA === "OFF") ? "not-allowed" : "pointer";
+                });
+                if(statusA === "OFF") document.getElementById("sync-status").innerText = "REMOTE A NONAKTIF";
+            });
+
             firebaseDb.child('rotation').on('value', (snap) => {
                 const val = snap.val();
                 if (val) document.getElementById("server-val").innerText = val;
@@ -162,13 +161,8 @@
 
             firebase.database().ref(".info/connected").on("value", (snap) => {
                 const fbHeader = document.getElementById("status-fb");
-                if (snap.val() === true) {
-                    fbHeader.innerText = "FIREBASE: CONNECTED";
-                    fbHeader.className = "indicator on";
-                } else {
-                    fbHeader.innerText = "FIREBASE: DISCONNECTED";
-                    fbHeader.className = "indicator off";
-                }
+                fbHeader.innerText = snap.val() ? "FIREBASE: CONNECTED" : "FIREBASE: DISCONNECTED";
+                fbHeader.className = snap.val() ? "indicator on" : "indicator off";
             });
 
             const clock = document.getElementById("clock");
@@ -184,9 +178,7 @@
             }
         }
 
-        function sendRandom() {
-            sendCommand(null, true);
-        }
+        function sendRandom() { sendCommand(null, true); }
     </script>
 </body>
 </html>
