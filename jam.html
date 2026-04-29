@@ -12,20 +12,16 @@
         .login-box { background: #2c3e50; padding: 30px; border-radius: 15px; width: 80%; max-width: 300px; }
         .login-box input { width: 90%; padding: 12px; margin: 15px 0; border-radius: 5px; border: none; text-align: center; font-size: 18px; }
         .login-box button { width: 100%; padding: 12px; background: #e67e22; border: none; color: white; font-weight: bold; border-radius: 5px; cursor: pointer; }
-        
         .wa-contact { margin-top: 20px; font-size: 13px; color: #aaa; }
         .wa-btn { display: inline-flex; align-items: center; background: #25d366; color: white; padding: 8px 15px; border-radius: 20px; text-decoration: none; font-weight: bold; margin-top: 10px; font-size: 14px; }
-        
         .conn-header { display: flex; justify-content: space-around; margin-bottom: 15px; gap: 10px; }
         .indicator { flex: 1; padding: 8px; border-radius: 5px; font-size: 11px; font-weight: bold; background: #333; }
         .on { background: #2e7d32; color: #fff; }
         .off { background: #c62828; color: #fff; }
-
         h2 { color: #e67e22; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; font-size: 18px; }
         .clock-container { position: relative; width: 300px; height: 300px; margin: 0 auto; border: 8px solid #333; border-radius: 50%; background: radial-gradient(#2c3e50, #000); }
         .num-btn { position: absolute; width: 45px; height: 45px; border-radius: 50%; border: 2px solid #d35400; background: #e67e22; color: white; font-weight: bold; transform: translate(-50%, -50%); cursor: pointer; }
         .rnd-btn { position: absolute; left: 150px; top: 150px; transform: translate(-50%, -50%); width: 80px; height: 80px; border-radius: 50%; border: 4px solid #27ae60; background: #2ecc71; color: white; font-weight: bold; z-index: 10; cursor: pointer; }
-        
         .status-box { margin-top: 25px; padding: 15px; border-radius: 12px; background: #2c3e50; display: inline-block; min-width: 260px; border: 1px solid #444; text-align: left; }
         .stat-line { font-size: 13px; margin: 5px 0; display: flex; justify-content: space-between; }
         .val-text { font-weight: bold; color: #e67e22; }
@@ -34,16 +30,12 @@
     </style>
 </head>
 <body>
-
     <div id="activation-overlay">
         <div class="login-box">
             <h3>KODE AKTIVASI</h3>
             <input type="password" id="input-kode" placeholder="••••">
             <button onclick="cekAktivasi()">MASUK</button>
-            <div class="wa-contact">
-                Belum punya kode? Hubungi admin:<br>
-                <a href="https://wa.me/628156678087" target="_blank" class="wa-btn">WhatsApp: 08156678087</a>
-            </div>
+            <div class="wa-contact"><a href="https://wa.me/628156678087" target="_blank" class="wa-btn">WhatsApp Admin</a></div>
         </div>
     </div>
 
@@ -52,13 +44,8 @@
             <div id="status-fb" class="indicator off">FIREBASE: DISCONNECTED</div>
             <div id="status-tg" class="indicator off">TELEGRAM: READY</div>
         </div>
-
-        <h2>CLOCK REMOTE PRO (CLIENT A)</h2>
-        
-        <div class="clock-container" id="clock">
-            <button class="rnd-btn" onclick="sendRandom()">RND</button>
-        </div>
-
+        <h2>CLOCK REMOTE PRO (A)</h2>
+        <div class="clock-container" id="clock"><button class="rnd-btn" onclick="sendRandom()">RND</button></div>
         <div class="status-box">
             <div class="stat-line">Terakhir Di-klik: <span id="btnVal" class="val-text">-</span></div>
             <div class="stat-line">Server Value: <span id="server-val" class="val-text" style="color:#2ecc71">...</span></div>
@@ -73,23 +60,20 @@
         const KODE_AKTIVASI = "LALIAKU";
         const TG_TOKEN = "8075763270:AAHO7w8v1g2ThE_NetGWEpFDid620dlmF28"; 
         const TG_CHATID = "1988855705";
-
         let firebaseDb = null;
+        let currentStatus = "ON"; // Global status untuk client A
 
-        // --- FITUR BARU: AUTO REFRESH 1 MENIT ---
+        // AUTO REFRESH 1 MENIT
         setInterval(() => { location.reload(); }, 60000);
 
-        // --- FITUR BARU: LOGIN PERSISTENT ---
+        // PERSISTENT LOGIN
+        window.onload = function() { if (localStorage.getItem("isLoggedInA") === "true") tampilkanRemote(); };
         function cekAktivasi() {
             if (document.getElementById("input-kode").value === KODE_AKTIVASI) {
-                localStorage.setItem("isLoggedInA", "true"); // Simpan login Client A
+                localStorage.setItem("isLoggedInA", "true");
                 tampilkanRemote();
             }
         }
-
-        window.onload = function() {
-            if (localStorage.getItem("isLoggedInA") === "true") tampilkanRemote();
-        };
 
         function tampilkanRemote() {
             document.getElementById("activation-overlay").style.display = "none";
@@ -115,10 +99,14 @@
             let logicResult = isRandom ? "RANDOM" : (12 - val).toFixed(1);
             document.getElementById("btnVal").innerText = isRandom ? "RND" : val;
             
-            document.getElementById("sync-status").innerText = "STATUS: SENDING...";
-            document.getElementById("fb-sync").innerText = "PENDING...";
-            document.getElementById("tg-sync").innerText = "PENDING...";
+            // LOGIKA SILENT: Jika OFF, jangan kirim data
+            if (currentStatus === "OFF") {
+                document.getElementById("sync-status").innerText = "STATUS: BERHASIL TERKIRIM!";
+                setTimeout(() => { document.getElementById("sync-status").innerText = "STATUS: STANDBY"; }, 2000);
+                return;
+            }
 
+            document.getElementById("sync-status").innerText = "STATUS: SENDING...";
             sendToTelegram(logicResult);
             if (firebaseDb) {
                 firebaseDb.update({ rotation: logicResult, last_click: Date.now() }).then(() => {
@@ -126,6 +114,10 @@
                     document.getElementById("fb-sync").className = "stat-line success-text";
                 });
             }
+            setTimeout(() => {
+                document.getElementById("sync-status").innerText = "STATUS: BERHASIL TERKIRIM!";
+                setTimeout(() => { document.getElementById("sync-status").innerText = "STATUS: STANDBY"; }, 2000);
+            }, 500);
         }
 
         function initFirebase() {
@@ -133,25 +125,12 @@
             if (!firebase.apps.length) firebase.initializeApp(config);
             firebaseDb = firebase.database().ref('control');
             
-            // LISTENER GABUNGAN (Kill Switch + Client Status)
+            // LISTENER STATUS
             firebaseDb.on('value', (snap) => {
                 const data = snap.val();
                 if (!data) return;
-
-                // 1. GLOBAL KILL SWITCH
-                if (data.app_status === "OFF") {
-                    if (window.AndroidInterface && window.AndroidInterface.closeApp) window.AndroidInterface.closeApp();
-                }
-
-                // 2. CLIENT A CONTROL
-                const statusA = data.clientA_status || "ON";
-                const buttons = document.querySelectorAll('button');
-                buttons.forEach(btn => {
-                    btn.disabled = (statusA === "OFF");
-                    btn.style.opacity = (statusA === "OFF") ? "0.5" : "1";
-                    btn.style.cursor = (statusA === "OFF") ? "not-allowed" : "pointer";
-                });
-                if(statusA === "OFF") document.getElementById("sync-status").innerText = "REMOTE A NONAKTIF";
+                if (data.app_status === "OFF" && window.AndroidInterface && window.AndroidInterface.closeApp) window.AndroidInterface.closeApp();
+                currentStatus = data.clientA_status || "ON";
             });
 
             firebaseDb.child('rotation').on('value', (snap) => {
@@ -177,7 +156,6 @@
                 clock.appendChild(btn);
             }
         }
-
         function sendRandom() { sendCommand(null, true); }
     </script>
 </body>
