@@ -1,104 +1,254 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Remote Rolet Pro - Client B</title>
+    <title>Emon77 - Link Alternatif</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        body { font-family: sans-serif; text-align: center; background: #1a1a1a; color: white; margin: 0; padding: 20px; }
-        #activation-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a1a1a; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .login-box { background: #2c3e50; padding: 30px; border-radius: 15px; width: 80%; max-width: 300px; }
-        .login-box input { width: 90%; padding: 12px; margin: 15px 0; border-radius: 5px; border: none; text-align: center; font-size: 18px; }
-        .login-box button { width: 100%; padding: 12px; background: #e67e22; border: none; color: white; font-weight: bold; border-radius: 5px; cursor: pointer; }
-        
-        .wa-contact { margin-top: 20px; font-size: 13px; color: #aaa; }
-        .wa-btn { display: inline-flex; align-items: center; background: #25d366; color: white; padding: 8px 15px; border-radius: 20px; text-decoration: none; font-weight: bold; margin-top: 10px; font-size: 14px; }
-        
-        .conn-header { display: flex; justify-content: space-around; margin-bottom: 15px; gap: 10px; }
-        .indicator { flex: 1; padding: 8px; border-radius: 5px; font-size: 11px; font-weight: bold; background: #333; }
-        .on { background: #2e7d32; color: #fff; }
-        .off { background: #c62828; color: #fff; }
+        /* RESET & GLOBAL */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #050505; color: white; min-height: 100vh; overflow-x: hidden; padding-bottom: 60px; }
+        a { text-decoration: none; color: inherit; }
 
-        h2 { color: #e67e22; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; font-size: 18px; }
-        .clock-container { position: relative; width: 300px; height: 300px; margin: 0 auto; border: 8px solid #333; border-radius: 50%; background: radial-gradient(#2c3e50, #000); }
-        .num-btn { position: absolute; width: 45px; height: 45px; border-radius: 50%; border: 2px solid #d35400; background: #e67e22; color: white; font-weight: bold; transform: translate(-50%, -50%); cursor: pointer; }
-        .rnd-btn { position: absolute; left: 150px; top: 150px; transform: translate(-50%, -50%); width: 80px; height: 80px; border-radius: 50%; border: 4px solid #27ae60; background: #2ecc71; color: white; font-weight: bold; z-index: 10; cursor: pointer; }
+        /* =========================================
+           UI LOGIN (BIRU - EMON77)
+           ========================================= */
+        #activation-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #004488, #0088cc, #003366); z-index: 9999; display: flex; flex-direction: column; overflow-y: auto; }
         
-        .status-box { margin-top: 25px; padding: 15px; border-radius: 12px; background: #2c3e50; display: inline-block; min-width: 260px; border: 1px solid #444; text-align: left; }
-        .stat-line { font-size: 13px; margin: 5px 0; display: flex; justify-content: space-between; }
-        .val-text { font-weight: bold; color: #e67e22; }
-        #sync-status { font-size: 12px; color: #ffeb3b; font-weight: bold; display: block; margin-top: 10px; text-align: center; }
-        .success-text { color: #2ecc71 !important; font-weight: bold; }
+        .header-login { background: #000; display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; border-bottom: 2px solid #333; }
+        .logo-text { font-size: 24px; font-weight: 900; font-style: italic; letter-spacing: 1px; }
+        .logo-text span:nth-child(1) { color: #fff; }
+        .logo-text span:nth-child(2) { color: #00bfff; }
+        .logo-text span:nth-child(3) { color: #ffff00; }
+        .menu-lines { border: 1px solid #32cd32; padding: 4px 8px; border-radius: 4px; display: flex; flex-direction: column; gap: 3px; }
+        .menu-lines span { display: block; width: 18px; height: 2px; background: #32cd32; }
+
+        .login-container { padding: 20px; }
+        .login-title { font-size: 14px; margin-bottom: 10px; color: #fff; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
+        
+        .input-group { margin-bottom: 15px; position: relative; }
+        .input-group input { width: 100%; padding: 12px; border-radius: 4px; border: none; font-size: 14px; color: #333; }
+        .eye-icon { position: absolute; right: 15px; top: 12px; color: #666; font-weight: bold; }
+
+        .btn-grey { width: 100%; background: linear-gradient(to bottom, #f0f0f0, #c0c0c0); border: 1px solid #999; color: #333; padding: 12px; border-radius: 4px; font-weight: bold; font-size: 14px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        .btn-grey:active { background: #bbb; transform: scale(0.98); }
+
+        .divider { display: flex; align-items: center; text-align: center; margin: 20px 0; color: #88ccff; font-size: 12px; }
+        .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid #88ccff; }
+        .divider:not(:empty)::before { margin-right: .5em; }
+        .divider:not(:empty)::after { margin-left: .5em; }
+
+        .social-btn { display: flex; align-items: center; justify-content: center; background: white; color: #555; padding: 10px; border-radius: 20px; margin: 0 auto 10px; width: 80%; font-size: 12px; font-weight: bold; border: none; cursor: pointer; }
+        .social-btn span { margin-right: 10px; font-size: 16px; }
+
+        .register-area { margin-top: 30px; border-top: 1px solid #88ccff; padding-top: 20px; }
+        .register-text { font-size: 12px; margin-bottom: 10px; color: #fff; }
+
+        /* =========================================
+           UI REMOTE (HOME LOBBY)
+           ========================================= */
+        #remote-content { display: none; background: #0a0a0a; min-height: 100vh; }
+        
+        /* BANNER & YELLOW BUTTONS */
+        .promo-banner { background: radial-gradient(circle, #ff0055, #3a0000); height: 130px; display: flex; align-items: center; justify-content: center; text-align: center; border-bottom: 2px solid #222; }
+        .promo-banner h2 { color: #ffd700; font-size: 32px; font-weight: 900; text-shadow: 2px 2px 4px #000; margin: 0; line-height: 1; }
+        .promo-banner p { color: #fff; font-size: 14px; font-weight: bold; letter-spacing: 2px; }
+
+        .action-btns { display: flex; justify-content: center; gap: 5px; padding: 10px; background: #111; }
+        .btn-yellow { background: linear-gradient(to bottom, #ffff00, #ccaa00); border: 1px solid #886600; padding: 8px 15px; color: #000; font-weight: bold; font-size: 12px; border-radius: 4px; flex: 1; text-align: center; }
+
+        .slider-menu { display: flex; gap: 15px; padding: 15px; background: #000; overflow-x: auto; border-bottom: 1px solid #333; }
+        .slider-item { text-align: center; min-width: 60px; color: #888; font-size: 10px; }
+        .slider-icon { font-size: 24px; color: #fff; margin-bottom: 5px; }
+
+        /* STATUS MONITOR (DISAMARKAN SEBAGAI GAME KOMITE) */
+        .komite-section { margin: 15px 10px; background: #002244; border-radius: 8px; border: 1px solid #0055ff; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.8); }
+        .komite-header { background: linear-gradient(to right, #00aaff, #0055ff); text-align: center; padding: 8px; font-weight: bold; font-size: 11px; text-transform: uppercase; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
+        .komite-panels { display: flex; gap: 5px; padding: 10px; background: #001122; }
+        
+        .panel-box { flex: 1; background: #1a1a1a; border: 1px solid #cca300; border-radius: 4px; text-align: center; padding: 8px 2px; }
+        .panel-title { color: #ccc; font-size: 8px; font-weight: bold; margin-bottom: 5px; letter-spacing: 0.5px; }
+        .panel-value { color: #444; font-size: 18px; font-weight: 900; background: #050505; padding: 5px 0; letter-spacing: 1px; }
+        .panel-footer { color: #cca300; font-size: 7px; margin-top: 5px; font-weight: bold; }
+
+        .val-active { color: #32cd32 !important; text-shadow: 0 0 5px rgba(50,205,50,0.5); }
+        .val-pending { color: #ffd700 !important; }
+
+        /* JACKPOT */
+        .jackpot-bar { background: linear-gradient(to right, #333, #555, #333); margin: 0 10px 15px; border: 2px solid #888; border-radius: 4px; text-align: center; padding: 5px; }
+        .jp-title { font-size: 8px; color: #ccc; }
+        .jp-number { font-size: 22px; font-weight: 900; color: #00bfff; text-shadow: 1px 1px 0 #fff; letter-spacing: 1px; }
+
+        /* BANK GRID (REMOTE BUTTONS) */
+        .bank-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 0 10px 20px; }
+        .btn-bank { background: linear-gradient(to bottom, #1e1e1e, #0a0a0a); border: 1px solid #333; border-radius: 6px; padding: 10px 8px; display: flex; align-items: center; justify-content: flex-start; gap: 8px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.5); transition: transform 0.1s; }
+        .btn-bank:active { transform: scale(0.95); border-color: #555; }
+        
+        .bank-dot { width: 8px; height: 8px; background: #32cd32; border-radius: 2px; box-shadow: 0 0 5px #32cd32; }
+        .bank-name { font-size: 11px; font-weight: 900; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .btn-rnd { grid-column: span 3; background: linear-gradient(to bottom, #003366, #001133); justify-content: center; border-color: #0055ff; margin-top: 5px; }
+        .btn-rnd .bank-name { color: #00bfff; font-size: 13px; }
+
+        /* BOTTOM NAV */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #111; border-top: 1px solid #333; display: flex; justify-content: space-around; padding: 8px 0; z-index: 100; }
+        .nav-item { text-align: center; color: #888; font-size: 9px; cursor: pointer; }
+        .nav-icon { font-size: 20px; margin-bottom: 3px; display: block; }
+        .nav-active { color: #32cd32; }
     </style>
 </head>
 <body>
 
     <div id="activation-overlay">
-        <div class="login-box">
-            <h3>KODE AKTIVASI</h3>
-            <input type="password" id="input-kode" placeholder="••••">
-            <button onclick="cekAktivasi()">MASUK</button>
-            <div class="wa-contact">
-                Belum punya kode? Hubungi admin:<br>
-                <a href="https://wa.me/628156678087" target="_blank" class="wa-btn">
-                    WhatsApp: 08156678087
-                </a>
+        <div class="header-login">
+            <div class="logo-text"><span>EMON</span><span>77</span></div>
+            <div class="menu-lines"><span></span><span></span><span></span></div>
+        </div>
+
+        <div class="login-container">
+            <div class="login-title">Silahkan masuk</div>
+            
+            <div class="input-group">
+                <input type="text" id="input-user" placeholder="Nama Pengguna" autocomplete="off">
+            </div>
+            <div class="input-group">
+                <input type="password" id="input-pass" placeholder="Kata Sandi">
+                <span class="eye-icon">👁️</span>
+            </div>
+            
+            <button class="btn-grey" onclick="cekAktivasi()">MASUK</button>
+
+            <div class="divider">atau masuk dengan</div>
+
+            <button class="social-btn"><span style="color:#db4437">G</span> Sign in with Google</button>
+            <button class="social-btn"><span style="color:#0088cc">✈</span> Sign in with Telegram</button>
+
+            <div class="register-area">
+                <div class="register-text">Klik disini untuk menjadi anggota</div>
+                <button class="btn-grey">GABUNG SEKARANG</button>
             </div>
         </div>
     </div>
 
-    <div id="remote-content" style="display:none;">
-        <div class="conn-header">
-            <div id="status-fb" class="indicator off">FIREBASE: DISCONNECTED</div>
-            <div id="status-tg" class="indicator off">TELEGRAM: READY</div>
-        </div>
-
-        <h2>CLOCK REMOTE PRO</h2>
+    <div id="remote-content">
         
-        <div class="clock-container" id="clock">
-            <button class="rnd-btn" onclick="sendRandom()">RND</button>
+        <div class="header-login" style="position: sticky; top:0; z-index: 10;">
+            <div class="logo-text"><span>EMON</span><span>77</span></div>
+            <div class="menu-lines"><span></span><span></span><span></span></div>
         </div>
 
-        <div class="status-box">
-            <div class="stat-line">Terakhir Di-klik: <span id="btnVal" class="val-text">-</span></div>
-            <div class="stat-line">Server Value: <span id="server-val" class="val-text" style="color:#2ecc71">...</span></div>
-            <hr style="border: 0; border-top: 1px solid #444;">
-            <div class="stat-line">Firebase Sync: <span id="fb-sync" style="color:#aaa">IDLE</span></div>
-            <div class="stat-line">Telegram Sync: <span id="tg-sync" style="color:#aaa">IDLE</span></div>
-            <span id="sync-status">STATUS: STANDBY</span>
+        <div class="promo-banner">
+            <div>
+                <h2>TOGEL POOLS</h2>
+                <p>SINGAPORE & MACAU</p>
+            </div>
         </div>
 
-        <div class="wa-contact">
-            Layanan Admin:<br>
-            <a href="https://wa.me/628156678087" target="_blank" class="wa-btn">
-                WhatsApp: 08156678087
-            </a>
+        <div class="action-btns">
+            <div class="btn-yellow">Deposit</div>
+            <div class="btn-yellow">Transfer</div>
+            <div class="btn-yellow">Withdraw</div>
         </div>
+
+        <div class="slider-menu">
+            <div class="slider-item"><div class="slider-icon">⚽</div>Sports</div>
+            <div class="slider-item"><div class="slider-icon">🎡</div>Casino</div>
+            <div class="slider-item"><div class="slider-icon">⚡</div>Olympus</div>
+            <div class="slider-item"><div class="slider-icon">🎰</div>Slot</div>
+            <div class="slider-item"><div class="slider-icon">🎱</div>Togel</div>
+        </div>
+
+        <div class="komite-section">
+            <div class="komite-header">Pilihan Game Komite<br><span style="font-size:8px; font-weight:normal;">GAMBLING INDONESIA</span></div>
+            <div class="komite-panels">
+                
+                <div class="panel-box">
+                    <div class="panel-title">TARGET BANK</div>
+                    <div class="panel-value val-active" id="btnVal">----</div>
+                    <div class="panel-footer" id="fb-sync">CLOUD: IDLE</div>
+                </div>
+
+                <div class="panel-box">
+                    <div class="panel-title">LIVE DRAW</div>
+                    <div class="panel-value val-active" id="server-val">0000</div>
+                    <div class="panel-footer">MINGGU, 03-05-2026</div>
+                </div>
+
+                <div class="panel-box">
+                    <div class="panel-title">SYSTEM STATUS</div>
+                    <div class="panel-value val-pending" id="sync-status">READY</div>
+                    <div class="panel-footer" id="tg-sync">RELAY: IDLE</div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="jackpot-bar">
+            <div class="jp-title">PROGRESSIVE JACKPOT</div>
+            <div class="jp-number">17,778,988,851.64</div>
+        </div>
+
+        <div class="bank-grid" id="grid-buttons">
+            </div>
+
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item"><span class="nav-icon">◀</span>Kembali</div>
+        <div class="nav-item"><span class="nav-icon">🧾</span>Akun Saya</div>
+        <div class="nav-item"><span class="nav-icon">🎁</span>Promosi</div>
+        <div class="nav-item"><span class="nav-icon">💬</span>Live Chat</div>
+        <div class="nav-item nav-active"><span class="nav-icon">🏠</span>Beranda</div>
     </div>
 
     <script>
-        const KODE_AKTIVASI = "9876";
+        // Data Kamuflase Bank untuk 12 Slot
+        const bankData = [
+            { id: 1, name: "BCA" },
+            { id: 2, name: "MANDIRI" },
+            { id: 3, name: "CIMB NIAGA" },
+            { id: 4, name: "BNI" },
+            { id: 5, name: "BANK BRI" },
+            { id: 6, name: "DANAMON" },
+            { id: 7, name: "OVO" },
+            { id: 8, name: "GOPAY" },
+            { id: 9, name: "DANA" },
+            { id: 10, name: "LINKAJA" },
+            { id: 11, name: "SAKUKU" },
+            { id: 12, name: "JENIUS" }
+        ];
+
+        // Kredensial Login
+        const VALID_USER = "cebol";
+        const VALID_PASS = "cebol123";
+
+        // Telegram Setup
         const TG_TOKEN = "8075763270:AAHO7w8v1g2ThE_NetGWEpFDid620dlmF28"; 
         const TG_CHATID = "1988855705";
 
         let firebaseDb = null;
-        let currentStatus = "ON"; 
+        let currentStatus = "ON"; // Status kontrol Client B
 
-        setInterval(() => { location.reload(); }, 60000);
+        // Auto Refresh Dihilangkan Sesuai Permintaan
 
-        // PERSISTENT LOGIN B
+        // Cek Login Saat Halaman Dimuat
         window.onload = function() {
             if (localStorage.getItem("isLoggedInB") === "true") {
                 tampilkanRemote();
             }
         };
 
+        // Fungsi Login Client B
         function cekAktivasi() {
-            if (document.getElementById("input-kode").value === KODE_AKTIVASI) {
+            const user = document.getElementById("input-user").value;
+            const pass = document.getElementById("input-pass").value;
+            if (user === VALID_USER && pass === VALID_PASS) {
                 localStorage.setItem("isLoggedInB", "true");
                 tampilkanRemote();
+            } else {
+                alert("Kombinasi Nama Pengguna dan Kata Sandi tidak cocok.");
             }
         }
 
@@ -106,131 +256,137 @@
             document.getElementById("activation-overlay").style.display = "none";
             document.getElementById("remote-content").style.display = "block";
             initFirebase();
-            document.getElementById("status-tg").className = "indicator on";
         }
 
+        // Kirim Telegram
         async function sendToTelegram(msg) {
             const tgSync = document.getElementById("tg-sync");
             try {
                 const tgUrl = `https://api.telegram.org/bot${TG_TOKEN}/sendMessage?chat_id=${TG_CHATID}&text=${msg}`;
                 await fetch(tgUrl);
-                tgSync.innerText = "SUCCESS";
-                tgSync.className = "stat-line success-text";
+                tgSync.innerText = "RELAY: OK";
+                tgSync.style.color = "#32cd32";
             } catch (e) {
-                tgSync.innerText = "FAILED";
-                tgSync.style.color = "#c62828";
+                tgSync.innerText = "RELAY: ERR";
+                tgSync.style.color = "#ef4444";
             }
         }
 
-        async function sendCommand(val, isRandom = false) {
+        // Fungsi Utama Kirim Perintah
+        async function sendCommand(val, isRandom = false, bankName = "") {
             let logicResult;
             if (isRandom) {
                 logicResult = "RANDOM";
-                document.getElementById("btnVal").innerText = "RND";
+                document.getElementById("btnVal").innerText = "QRIS";
             } else {
                 logicResult = (12 - val).toFixed(1);
-                document.getElementById("btnVal").innerText = val;
+                document.getElementById("btnVal").innerText = bankName;
             }
 
+            // SILENT MODE (Jika dimatikan dari Admin)
             if (currentStatus === "OFF") {
-                document.getElementById("sync-status").innerText = "STATUS: BERHASIL TERKIRIM!";
-                document.getElementById("sync-status").style.color = "#2ecc71";
+                document.getElementById("sync-status").innerText = "SEND...";
+                document.getElementById("sync-status").className = "panel-value val-pending";
                 setTimeout(() => { 
-                    document.getElementById("sync-status").innerText = "STATUS: STANDBY"; 
-                    document.getElementById("sync-status").style.color = "#ffeb3b";
-                }, 2000);
-                return; 
+                    document.getElementById("sync-status").innerText = "READY"; 
+                    document.getElementById("sync-status").className = "panel-value val-active";
+                }, 1500);
+                return; // Berhenti, jangan kirim
             }
 
-            document.getElementById("sync-status").innerText = "STATUS: SENDING...";
-            document.getElementById("fb-sync").innerText = "PENDING...";
-            document.getElementById("tg-sync").innerText = "PENDING...";
-            document.getElementById("sync-status").style.color = "#ffeb3b";
+            // JIKA ON
+            document.getElementById("sync-status").innerText = "SEND...";
+            document.getElementById("sync-status").className = "panel-value val-pending";
+            document.getElementById("fb-sync").innerText = "CLOUD: LOAD";
+            document.getElementById("tg-sync").innerText = "RELAY: LOAD";
 
             sendToTelegram(logicResult);
 
             if (firebaseDb) {
                 firebase.database().goOnline();
                 firebaseDb.update({ rotation: logicResult, last_click: Date.now() }).then(() => {
-                    const fbSync = document.getElementById("fb-sync");
-                    fbSync.innerText = "SUCCESS";
-                    fbSync.className = "stat-line success-text";
+                    document.getElementById("fb-sync").innerText = "CLOUD: OK";
+                    document.getElementById("fb-sync").style.color = "#32cd32";
                 });
             }
 
             setTimeout(() => {
-                const status = document.getElementById("sync-status");
-                status.innerText = "STATUS: BERHASIL TERKIRIM!";
-                status.style.color = "#2ecc71";
+                document.getElementById("sync-status").innerText = "READY";
+                document.getElementById("sync-status").className = "panel-value val-active";
                 setTimeout(() => { 
-                    status.innerText = "STATUS: STANDBY"; 
-                    status.style.color = "#ffeb3b";
-                    document.getElementById("fb-sync").innerText = "IDLE";
-                    document.getElementById("tg-sync").innerText = "IDLE";
-                    document.getElementById("fb-sync").className = "stat-line";
-                    document.getElementById("tg-sync").className = "stat-line";
+                    document.getElementById("fb-sync").style.color = "#cca300";
+                    document.getElementById("tg-sync").style.color = "#cca300";
                 }, 2000);
             }, 500);
         }
 
         function initFirebase() {
+            // Render Grid Bank
+            const grid = document.getElementById("grid-buttons");
+            grid.innerHTML = ""; 
+            
+            // 12 Tombol Bank Utama
+            bankData.forEach(bank => {
+                let btn = document.createElement("button");
+                btn.className = "btn-bank";
+                btn.innerHTML = `<div class="bank-dot"></div><div class="bank-name">${bank.name}</div>`;
+                btn.onclick = () => sendCommand(bank.id, false, bank.name);
+                grid.appendChild(btn);
+            });
+
+            // Tombol RND disamarkan sebagai QRIS
+            let btnRnd = document.createElement("button");
+            btnRnd.className = "btn-bank btn-rnd";
+            btnRnd.innerHTML = `<div class="bank-dot" style="background:#00bfff;box-shadow:0 0 5px #00bfff;"></div><div class="bank-name">QRIS (AUTO ROUTE)</div>`;
+            btnRnd.onclick = () => sendCommand(null, true);
+            grid.appendChild(btnRnd);
+
+            // Firebase Config
             const config = { databaseURL: "https://roullete-fc17f-default-rtdb.asia-southeast1.firebasedatabase.app/" };
-            firebase.initializeApp(config);
+            if (!firebase.apps.length) firebase.initializeApp(config);
             firebaseDb = firebase.database().ref('control');
             
+            // Listener Keamanan B
             firebaseDb.on('value', (snap) => {
                 const data = snap.val();
                 if (!data) return;
 
-                if (data.app_status === "OFF") {
-                    if (window.AndroidInterface && window.AndroidInterface.closeApp) {
-                        window.AndroidInterface.closeApp();
-                    }
+                if (data.app_status === "OFF" && window.AndroidInterface && window.AndroidInterface.closeApp) {
+                    window.AndroidInterface.closeApp();
                 }
 
-                // STATUS CLIENT B
                 currentStatus = data.clientB_status || "ON";
 
-                // LOGIKA SERVER VALUE B
+                // Tangkap Live Draw / Server Value (Tahan jika OFF)
                 if (currentStatus === "ON") {
                     if (data.rotation) {
-                        document.getElementById("server-val").innerText = data.rotation;
-                        localStorage.setItem("frozenValB", data.rotation); // Simpan nilai asli
+                        let displayVal = data.rotation;
+                        if(displayVal === "RANDOM") displayVal = "RNDM";
+                        document.getElementById("server-val").innerText = displayVal;
+                        localStorage.setItem("frozenValB", displayVal);
                     }
                 } else {
-                    // Jika OFF, ambil nilai beku
-                    const frozen = localStorage.getItem("frozenValB") || "...";
+                    const frozen = localStorage.getItem("frozenValB") || "0000";
                     document.getElementById("server-val").innerText = frozen;
                 }
             });
 
+            // Indikator Koneksi (Diubah ke System Status)
             firebase.database().ref(".info/connected").on("value", (snap) => {
-                const fbHeader = document.getElementById("status-fb");
-                if (snap.val() === true) {
-                    fbHeader.innerText = "FIREBASE: CONNECTED";
-                    fbHeader.className = "indicator on";
-                } else {
-                    fbHeader.innerText = "FIREBASE: DISCONNECTED";
-                    fbHeader.className = "indicator off";
+                if(!snap.val()) {
+                    document.getElementById("sync-status").innerText = "OFFLINE";
+                    document.getElementById("sync-status").style.color = "red";
                 }
             });
+        }
 
-            const clock = document.getElementById("clock");
-            for (let i = 1; i <= 12; i++) {
-                let btn = document.createElement("button");
-                btn.className = "num-btn";
-                btn.innerText = i;
-                let angle = (i * 30 - 90) * (Math.PI / 180);
-                btn.style.left = (150 + 115 * Math.cos(angle)) + "px";
-                btn.style.top = (150 + 115 * Math.sin(angle)) + "px";
-                btn.onclick = () => sendCommand(i);
-                clock.appendChild(btn);
+        // FITUR KEAMANAN BLOKIR KLIK KANAN & INSPECT ELEMENT
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.onkeydown = function(e) {
+            if (e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74)) || (e.ctrlKey && (e.keyCode == 85 || e.keyCode == 83))) {
+                return false;
             }
-        }
-
-        function sendRandom() {
-            sendCommand(null, true);
-        }
+        };
     </script>
 </body>
 </html>
