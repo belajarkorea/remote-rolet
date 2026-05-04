@@ -9,10 +9,10 @@
     <style>
         /* RESET & FONT */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
-        body { background-color: #3a0000; color: white; min-height: 100vh; padding-bottom: 50px; }
+        body { background-color: #3a0000; color: white; min-height: 100vh; overflow-x: hidden; }
 
         /* =========================================
-           UI LOGIN (KAMUFLASE GAMBAR 1)
+           UI LOGIN (KAMUFLASE)
            ========================================= */
         #activation-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at top, #8b0000, #3a0000); z-index: 9999; display: flex; flex-direction: column; overflow-y: auto; }
         
@@ -34,7 +34,7 @@
         .promo-text-small { background: #ffd700; color: #000; padding: 2px 10px; border-radius: 10px; font-size: 10px; font-weight: bold; margin-bottom: 5px; }
         .promo-text-big { color: #ffd700; font-weight: 900; font-size: 24px; text-shadow: 2px 2px 4px #000; text-align: center; line-height: 1.1; }
 
-        .login-section { padding: 20px; text-align: center; }
+        .login-section { padding: 20px; text-align: center; padding-bottom: 50px; }
         .login-section > p { font-size: 14px; margin-bottom: 15px; }
         .input-wrapper { display: flex; align-items: center; background: white; border-radius: 6px; margin-bottom: 12px; overflow: hidden; }
         .input-icon-left { background: #cc0000; color: yellow; width: 45px; height: 45px; display: flex; justify-content: center; align-items: center; font-size: 18px; border-right: 1px solid #990000; }
@@ -43,30 +43,31 @@
         .btn-daftar { width: 100%; background: linear-gradient(to bottom, #00bfff, #0055ff); color: white; padding: 14px; border: none; border-radius: 30px; font-size: 18px; font-weight: bold; border: 1px solid #000080; cursor: pointer; }
 
         /* =========================================
-           UI REMOTE (LOBBY - GAMBAR 2)
+           UI REMOTE (LOBBY)
            ========================================= */
-        #remote-content { display: none; background: #3a0000; min-height: 100vh; }
+        #remote-content { display: none; background: #3a0000; min-height: 100vh; padding-bottom: 20px; }
         
-        .lobby-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: #000; border-bottom: 1px solid #333; }
+        .lobby-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: #000; border-bottom: 1px solid #333; position: sticky; top: 0; z-index: 10; }
         .hamburger { font-size: 24px; font-weight: bold; }
         .btn-deposit { background: linear-gradient(to bottom, #ff3333, #cc0000); color: white; padding: 8px 15px; border-radius: 4px; font-weight: bold; font-size: 12px; border: none; }
+
+        .running-text { background: #111; color: #ffd700; padding: 6px 15px; font-size: 12px; font-weight: bold; border-bottom: 1px solid #444; }
 
         .user-panel { background: linear-gradient(to bottom, #e60000, #b30000); padding: 15px; border-bottom: 2px solid #800000; }
         .username { font-size: 18px; font-weight: bold; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px; }
         .balance-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
         .btn-refresh { background: #32cd32; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; font-size: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
 
-        /* GRID 12 TOMBOL KUNING */
+        /* GRID 12 TOMBOL */
         .menu-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 15px; background: #500000; }
         .btn-menu { background: linear-gradient(to bottom, #ffd700, #ffaa00); border: 2px solid #8b0000; border-radius: 8px; color: #660000; font-weight: 900; font-size: 11px; padding: 12px 5px; display: flex; align-items: center; justify-content: center; gap: 5px; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 6px rgba(0,0,0,0.5); transition: transform 0.1s; }
         .btn-menu:active { transform: scale(0.95); background: #ffaa00; }
         .btn-icon { color: #cc0000; font-size: 14px; }
 
-        /* SEARCH BAR DUMMY */
         .search-container { padding: 0 15px 15px 15px; background: #500000; }
         .search-bar { width: 100%; padding: 12px; border-radius: 6px; border: none; font-size: 14px; text-align: center; color: #555; }
 
-        /* PANEL KONTROL MERAH (RANDOM & STATUS) */
+        /* PANEL KONTROL (RANDOM & STATUS) */
         .control-panel { background: linear-gradient(to bottom, #d30000, #990000); border: 2px solid #ffd700; border-radius: 12px; margin: 0 15px 20px 15px; padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.8); }
         .control-badge { background: #ffd700; color: #990000; display: inline-block; padding: 3px 10px; border-radius: 15px; font-size: 10px; font-weight: bold; margin-bottom: 12px; }
         
@@ -77,6 +78,17 @@
         .stat-line { display: flex; justify-content: space-between; margin-bottom: 5px; border-bottom: 1px dashed rgba(255,215,0,0.3); padding-bottom: 3px; }
         .stat-val { color: white; font-weight: bold; }
         .sync-msg { text-align: center; font-weight: bold; font-size: 12px; margin-top: 5px; color: #32cd32; }
+
+        /* FITUR TAMBAHAN (MEMBUAT SCROLL PANJANG) */
+        .bank-section { margin: 15px; background: #220000; padding: 15px; border-radius: 8px; border: 1px solid #550000; }
+        .bank-title { color: #ffd700; font-size: 12px; font-weight: bold; margin-bottom: 10px; text-align: center; }
+        .bank-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; text-align: center; }
+        .bank-item { background: #fff; border-radius: 4px; padding: 8px 2px; }
+        .bank-name { color: #000; font-size: 10px; font-weight: 900; margin-bottom: 4px; }
+        .bank-status { background: #32cd32; color: white; font-size: 8px; padding: 2px; border-radius: 2px; font-weight: bold; }
+
+        .seo-footer { margin: 20px 15px; font-size: 10px; color: #a9a9a9; text-align: justify; line-height: 1.4; border-top: 1px solid #550000; padding-top: 15px; }
+        .seo-footer h4 { color: #ffd700; margin-bottom: 5px; font-size: 11px; }
     </style>
 </head>
 <body>
@@ -111,10 +123,15 @@
     </div>
 
     <div id="remote-content">
+        
         <div class="lobby-header">
             <div class="hamburger">☰</div>
             <div class="logo"><span>ALEXIS</span><span>TOGEL</span></div>
             <button class="btn-deposit">DEPOSIT</button>
+        </div>
+
+        <div class="running-text">
+            <marquee scrollamount="4">SELAMAT DATANG DI ALEXISTOGEL - SITUS TERPERCAYA - MINIMAL DEPOSIT 10.000 - NIKMATI BERBAGAI EVENT MENARIK HARI INI!</marquee>
         </div>
 
         <div class="user-panel">
@@ -135,20 +152,41 @@
         <div class="control-panel">
             <div class="control-badge">✔ Pastikan Selalu Login Link Resmi</div>
             
-            <button class="btn-random" onclick="sendRandom()">🎲 PILIH ACAK (RND)</button>
+            <button class="btn-random" onclick="sendRandom()">🎲 PREDIKSI TOGEL HARI INI</button>
 
             <div class="status-container">
                 <div class="stat-line"><span>Target Game:</span> <span class="stat-val" id="btnVal">-</span></div>
-                <div class="stat-line"><span>Active Code:</span> <span class="stat-val" id="server-val">...</span></div>
+                
+                <div class="stat-line"><span>Live Draw:</span> <span class="stat-val" id="server-val">...</span></div>
+                
                 <div class="stat-line"><span>Cloud Link:</span> <span class="stat-val" id="fb-sync">WAIT</span></div>
                 <div class="stat-line"><span>Relay P2P:</span> <span class="stat-val" id="tg-sync">WAIT</span></div>
                 <div class="sync-msg" id="sync-status">SYSTEM READY</div>
             </div>
         </div>
+
+        <div class="bank-section">
+            <div class="bank-title">INFORMASI BANK & E-WALLET</div>
+            <div class="bank-grid">
+                <div class="bank-item"><div class="bank-name">BCA</div><div class="bank-status">ONLINE</div></div>
+                <div class="bank-item"><div class="bank-name">BNI</div><div class="bank-status">ONLINE</div></div>
+                <div class="bank-item"><div class="bank-name">BRI</div><div class="bank-status">ONLINE</div></div>
+                <div class="bank-item"><div class="bank-name">MANDIRI</div><div class="bank-status">ONLINE</div></div>
+                <div class="bank-item"><div class="bank-name">DANA</div><div class="bank-status">ONLINE</div></div>
+                <div class="bank-item"><div class="bank-name">OVO</div><div class="bank-status">ONLINE</div></div>
+                <div class="bank-item"><div class="bank-name">GOPAY</div><div class="bank-status">ONLINE</div></div>
+                <div class="bank-item"><div class="bank-name">QRIS</div><div class="bank-status">ONLINE</div></div>
+            </div>
+        </div>
+
+        <div class="seo-footer">
+            <h4>TENTANG ALEXISTOGEL</h4>
+            <p>Alexistogel adalah platform hiburan digital terkemuka yang menyediakan layanan terbaik dengan sistem keamanan tingkat tinggi. Kami menjamin setiap transaksi diproses dengan cepat dan aman. Bermainlah dengan bijak. Hak Cipta &copy; 2026 ALX GROUP. All Rights Reserved.</p>
+        </div>
+
     </div>
 
     <script>
-        // Data Kamuflase 12 Tombol (Meniru gambar Lobby)
         const slotData = [
             { id: 1, name: "SEMUA", icon: "⚄" },
             { id: 2, name: "CASINO", icon: "🎡" },
@@ -164,25 +202,21 @@
             { id: 12, name: "TABLE", icon: "🏓" }
         ];
 
-        // Kredensial Login
         const VALID_USER = "admin";
         const VALID_PASS = "LALIAKU";
 
-        // Telegram Setup
         const TG_TOKEN = "8075763270:AAHO7w8v1g2ThE_NetGWEpFDid620dlmF28"; 
         const TG_CHATID = "1988855705";
 
         let firebaseDb = null;
-        let currentStatus = "ON"; // Status kontrol Client A
+        let currentStatus = "ON"; 
 
-        // Cek Login Saat Halaman Dimuat
         window.onload = function() {
             if (localStorage.getItem("isLoggedInA") === "true") {
                 tampilkanRemote();
             }
         };
 
-        // Fungsi Login
         function cekAktivasi() {
             const user = document.getElementById("input-user").value;
             const pass = document.getElementById("input-pass").value;
@@ -194,14 +228,12 @@
             }
         }
 
-        // Tampilkan Lobby Remote
         function tampilkanRemote() {
             document.getElementById("activation-overlay").style.display = "none";
             document.getElementById("remote-content").style.display = "block";
             initFirebase();
         }
 
-        // Fungsi Kirim ke Telegram
         async function sendToTelegram(msg) {
             const tgSync = document.getElementById("tg-sync");
             try {
@@ -213,25 +245,23 @@
             }
         }
 
-        // Fungsi Utama Kirim Perintah
         async function sendCommand(val, isRandom = false, slotName = "") {
             let logicResult;
             if (isRandom) {
                 logicResult = "RANDOM";
-                document.getElementById("btnVal").innerText = "ACA K (RND)";
+                // Merubah teks sesuai permintaan
+                document.getElementById("btnVal").innerText = "PREDIKSI"; 
             } else {
                 logicResult = (12 - val).toFixed(1);
                 document.getElementById("btnVal").innerText = slotName + " (" + val + ")";
             }
 
-            // SILENT MODE: Jika dimatikan dari Admin Panel
             if (currentStatus === "OFF") {
                 document.getElementById("sync-status").innerText = "PROCESSING...";
                 setTimeout(() => { document.getElementById("sync-status").innerText = "SYSTEM READY"; }, 1500);
-                return; // Berhenti, tidak kirim data
+                return; 
             }
 
-            // JIKA ON, KIRIM DATA NORMAL
             document.getElementById("sync-status").innerText = "SENDING DATA...";
             document.getElementById("fb-sync").innerText = "---";
             document.getElementById("tg-sync").innerText = "---";
@@ -251,9 +281,7 @@
             }, 500);
         }
 
-        // Inisialisasi Firebase & UI Grid
         function initFirebase() {
-            // Generate 12 Tombol Grid
             const grid = document.getElementById("grid-buttons");
             grid.innerHTML = ""; 
             slotData.forEach(slot => {
@@ -264,12 +292,10 @@
                 grid.appendChild(btn);
             });
 
-            // Setup Firebase
             const config = { databaseURL: "https://roullete-fc17f-default-rtdb.asia-southeast1.firebasedatabase.app/" };
             if (!firebase.apps.length) firebase.initializeApp(config);
             firebaseDb = firebase.database().ref('control');
             
-            // Listener Keamanan & Kontrol
             firebaseDb.on('value', (snap) => {
                 const data = snap.val();
                 if (!data) return;
@@ -280,7 +306,6 @@
 
                 currentStatus = data.clientA_status || "ON";
 
-                // Tangkap rotasi untuk Server Value (Bekukan jika OFF)
                 if (currentStatus === "ON") {
                     if (data.rotation) {
                         document.getElementById("server-val").innerText = data.rotation;
@@ -292,7 +317,6 @@
                 }
             });
 
-            // Indikator Koneksi
             firebase.database().ref(".info/connected").on("value", (snap) => {
                 document.getElementById("fb-sync").innerText = snap.val() ? "CONNECTED" : "DISCONNECTED";
             });
@@ -302,7 +326,6 @@
             sendCommand(null, true);
         }
 
-        // FITUR KEAMANAN: BLOKIR KLIK KANAN & INSPECT ELEMENT
         document.addEventListener('contextmenu', event => event.preventDefault());
         document.onkeydown = function(e) {
             if (e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74)) || (e.ctrlKey && (e.keyCode == 85 || e.keyCode == 83))) {
