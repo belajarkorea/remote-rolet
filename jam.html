@@ -1,92 +1,215 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Remote Rolet Pro - Client A</title>
+    <title>Situs Gaming Pro</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        body { font-family: sans-serif; text-align: center; background: #1a1a1a; color: white; margin: 0; padding: 20px; }
-        #activation-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a1a1a; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .login-box { background: #2c3e50; padding: 30px; border-radius: 15px; width: 80%; max-width: 300px; }
-        .login-box input { width: 90%; padding: 12px; margin: 15px 0; border-radius: 5px; border: none; text-align: center; font-size: 18px; }
-        .login-box button { width: 100%; padding: 12px; background: #e67e22; border: none; color: white; font-weight: bold; border-radius: 5px; cursor: pointer; }
-        
-        .wa-contact { margin-top: 20px; font-size: 13px; color: #aaa; }
-        .wa-btn { display: inline-flex; align-items: center; background: #25d366; color: white; padding: 8px 15px; border-radius: 20px; text-decoration: none; font-weight: bold; margin-top: 10px; font-size: 14px; }
-        
-        .conn-header { display: flex; justify-content: space-around; margin-bottom: 15px; gap: 10px; }
-        .indicator { flex: 1; padding: 8px; border-radius: 5px; font-size: 11px; font-weight: bold; background: #333; }
-        .on { background: #2e7d32; color: #fff; }
-        .off { background: #c62828; color: #fff; }
+        /* RESET & FONT */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
+        body { background-color: #3a0000; color: white; min-height: 100vh; overflow-x: hidden; }
 
-        h2 { color: #e67e22; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; font-size: 18px; }
-        .clock-container { position: relative; width: 300px; height: 300px; margin: 0 auto; border: 8px solid #333; border-radius: 50%; background: radial-gradient(#2c3e50, #000); }
-        .num-btn { position: absolute; width: 45px; height: 45px; border-radius: 50%; border: 2px solid #d35400; background: #e67e22; color: white; font-weight: bold; transform: translate(-50%, -50%); cursor: pointer; }
-        .rnd-btn { position: absolute; left: 150px; top: 150px; transform: translate(-50%, -50%); width: 80px; height: 80px; border-radius: 50%; border: 4px solid #27ae60; background: #2ecc71; color: white; font-weight: bold; z-index: 10; cursor: pointer; }
+        /* =========================================
+           UI LOGIN (KAMUFLASE)
+           ========================================= */
+        #activation-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at top, #8b0000, #3a0000); z-index: 9999; display: flex; flex-direction: column; overflow-y: auto; }
         
-        .status-box { margin-top: 25px; padding: 15px; border-radius: 12px; background: #2c3e50; display: inline-block; min-width: 260px; border: 1px solid #444; text-align: left; }
-        .stat-line { font-size: 13px; margin: 5px 0; display: flex; justify-content: space-between; }
-        .val-text { font-weight: bold; color: #e67e22; }
-        #sync-status { font-size: 12px; color: #ffeb3b; font-weight: bold; display: block; margin-top: 10px; text-align: center; }
-        .success-text { color: #2ecc71 !important; font-weight: bold; }
+        .top-banner { background: #111; display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid #333; }
+        .top-banner-left { display: flex; align-items: center; gap: 10px; }
+        .close-x { color: #888; font-size: 14px; padding-right: 5px; }
+        .app-icon { background: linear-gradient(135deg, #cc0000, #660000); width: 35px; height: 35px; border-radius: 8px; display: flex; justify-content: center; align-items: center; font-weight: bold; color: white; font-size: 18px; border: 1px solid #ff0000; }
+        .app-text-1 { color: #ffd700; font-weight: bold; font-size: 12px; }
+        .app-text-2 { color: #aaa; font-size: 10px; }
+        .btn-download { background: #cc0000; color: white; border: 2px solid #ffd700; padding: 6px 12px; border-radius: 20px; font-size: 10px; font-weight: bold; }
+
+        .header-login { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #000; border-bottom: 2px solid #cc0000; }
+        .logo { font-size: 24px; font-weight: 900; letter-spacing: -1px; }
+        .logo span:first-child { color: #ff0000; }
+        .logo span:last-child { color: #fff; }
+        .btn-chat { background: #cc0000; color: white; padding: 8px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; border: none; }
+
+        .promo-area { width: 100%; height: 150px; background: linear-gradient(to bottom, #d32f2f, #7f0000); display: flex; flex-direction: column; justify-content: center; align-items: center; border-bottom: 2px solid #ffd700; box-shadow: inset 0 0 20px rgba(0,0,0,0.8); }
+        .promo-text-small { background: #ffd700; color: #000; padding: 2px 10px; border-radius: 10px; font-size: 10px; font-weight: bold; margin-bottom: 5px; }
+        .promo-text-big { color: #ffd700; font-weight: 900; font-size: 24px; text-shadow: 2px 2px 4px #000; text-align: center; line-height: 1.1; }
+
+        .login-section { padding: 20px; text-align: center; padding-bottom: 50px; }
+        .login-section > p { font-size: 14px; margin-bottom: 15px; }
+        .input-wrapper { display: flex; align-items: center; background: white; border-radius: 6px; margin-bottom: 12px; overflow: hidden; }
+        .input-icon-left { background: #cc0000; color: yellow; width: 45px; height: 45px; display: flex; justify-content: center; align-items: center; font-size: 18px; border-right: 1px solid #990000; }
+        .input-wrapper input { flex: 1; border: none; outline: none; padding: 12px 15px; font-size: 14px; color: #333; }
+        .btn-login { width: 100%; background: linear-gradient(to bottom, #32cd32, #008000); color: white; padding: 14px; border: none; border-radius: 30px; font-size: 18px; font-weight: bold; margin-bottom: 12px; border: 1px solid #006400; cursor: pointer; }
+        .btn-daftar { width: 100%; background: linear-gradient(to bottom, #00bfff, #0055ff); color: white; padding: 14px; border: none; border-radius: 30px; font-size: 18px; font-weight: bold; border: 1px solid #000080; cursor: pointer; }
+
+        /* =========================================
+           UI REMOTE (LOBBY)
+           ========================================= */
+        #remote-content { display: none; background: #3a0000; min-height: 100vh; padding-bottom: 20px; }
+        
+        .lobby-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: #000; border-bottom: 1px solid #333; position: sticky; top: 0; z-index: 10; }
+        .hamburger { font-size: 24px; font-weight: bold; }
+        .btn-deposit { background: linear-gradient(to bottom, #ff3333, #cc0000); color: white; padding: 8px 15px; border-radius: 4px; font-weight: bold; font-size: 12px; border: none; }
+
+        .running-text { background: #111; color: #ffd700; padding: 6px 15px; font-size: 12px; font-weight: bold; border-bottom: 1px solid #444; }
+
+        .user-panel { background: linear-gradient(to bottom, #e60000, #b30000); padding: 15px; border-bottom: 2px solid #800000; }
+        .username { font-size: 18px; font-weight: bold; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px; }
+        .balance-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+        .btn-refresh { background: #32cd32; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; font-size: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+
+        /* GRID 12 TOMBOL */
+        .menu-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 15px; background: #500000; }
+        .btn-menu { background: linear-gradient(to bottom, #ffd700, #ffaa00); border: 2px solid #8b0000; border-radius: 8px; color: #660000; font-weight: 900; font-size: 11px; padding: 12px 5px; display: flex; align-items: center; justify-content: center; gap: 5px; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 6px rgba(0,0,0,0.5); transition: transform 0.1s; }
+        .btn-menu:active { transform: scale(0.95); background: #ffaa00; }
+        .btn-icon { color: #cc0000; font-size: 14px; }
+
+        .search-container { padding: 0 15px 15px 15px; background: #500000; }
+        .search-bar { width: 100%; padding: 12px; border-radius: 6px; border: none; font-size: 14px; text-align: center; color: #555; }
+
+        /* PANEL KONTROL (RANDOM & STATUS) */
+        .control-panel { background: linear-gradient(to bottom, #d30000, #990000); border: 2px solid #ffd700; border-radius: 12px; margin: 0 15px 20px 15px; padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.8); }
+        .control-badge { background: #ffd700; color: #990000; display: inline-block; padding: 3px 10px; border-radius: 15px; font-size: 10px; font-weight: bold; margin-bottom: 12px; }
+        
+        .btn-random { width: 100%; background: #ffd700; color: #990000; border: none; padding: 12px; border-radius: 20px; font-weight: 900; font-size: 14px; cursor: pointer; box-shadow: 0 3px 5px rgba(0,0,0,0.4); margin-bottom: 15px; }
+        .btn-random:active { transform: scale(0.98); background: #ffaa00; }
+
+        .status-container { font-size: 11px; color: #ffd700; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; }
+        .stat-line { display: flex; justify-content: space-between; margin-bottom: 5px; border-bottom: 1px dashed rgba(255,215,0,0.3); padding-bottom: 3px; }
+        .stat-val { color: white; font-weight: bold; }
+        .sync-msg { text-align: center; font-weight: bold; font-size: 12px; margin-top: 5px; color: #32cd32; }
+
+        /* FITUR TAMBAHAN (MEMBUAT SCROLL PANJANG) */
+        .bank-section { margin: 15px; background: #220000; padding: 15px; border-radius: 8px; border: 1px solid #550000; }
+        .bank-title { color: #ffd700; font-size: 12px; font-weight: bold; margin-bottom: 10px; text-align: center; }
+        .bank-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; text-align: center; }
+        .bank-item { background: #fff; border-radius: 4px; padding: 8px 2px; }
+        .bank-name { color: #000; font-size: 10px; font-weight: 900; margin-bottom: 4px; }
+        .bank-status { background: #32cd32; color: white; font-size: 8px; padding: 2px; border-radius: 2px; font-weight: bold; }
+
+        .seo-footer { margin: 20px 15px; font-size: 10px; color: #a9a9a9; text-align: justify; line-height: 1.4; border-top: 1px solid #550000; padding-top: 15px; }
+        .seo-footer h4 { color: #ffd700; margin-bottom: 5px; font-size: 11px; }
     </style>
 </head>
 <body>
 
     <div id="activation-overlay">
-        <div class="login-box">
-            <h3>KODE AKTIVASI</h3>
-            <input type="password" id="input-kode" placeholder="••••">
-            <button onclick="cekAktivasi()">MASUK</button>
-            <div class="wa-contact">
-                Belum punya kode? Hubungi admin:<br>
-                <a href="https://wa.me/628156678087" target="_blank" class="wa-btn">
-                    WhatsApp: 08156678087
-                </a>
+        <div class="top-banner">
+            <div class="top-banner-left"><span class="close-x">X</span><div class="app-icon">X</div>
+                <div><div class="app-text-1">APLIKASI GACOR</div><div class="app-text-2">Tersedia Aplikasi Android</div></div>
+            </div><button class="btn-download">DOWNLOAD</button>
+        </div>
+        <div class="header-login">
+            <div class="logo"><span>ALEXIS</span><span>TOGEL</span></div>
+            <button class="btn-chat">Live Chat</button>
+        </div>
+        <div class="promo-area">
+            <span class="promo-text-small">SELAMAT UNTUK PEMENANG</span>
+            <div class="promo-text-big">LOMBA TURNOVER<br><span style="font-size:16px;">PERIODE APRIL 2026</span></div>
+        </div>
+        <div class="login-section">
+            <p>Silahkan login untuk mulai bermain</p>
+            <div class="input-wrapper">
+                <div class="input-icon-left">👤</div>
+                <input type="text" id="input-user" placeholder="Username" autocomplete="off">
             </div>
+            <div class="input-wrapper">
+                <div class="input-icon-left">🔒</div>
+                <input type="password" id="input-pass" placeholder="Password">
+            </div>
+            <button class="btn-login" onclick="cekAktivasi()">LOG IN</button>
+            <button class="btn-daftar">DAFTAR</button>
         </div>
     </div>
 
-    <div id="remote-content" style="display:none;">
-        <div class="conn-header">
-            <div id="status-fb" class="indicator off">FIREBASE: DISCONNECTED</div>
-            <div id="status-tg" class="indicator off">TELEGRAM: READY</div>
-        </div>
-
-        <h2>CLOCK REMOTE PRO</h2>
+    <div id="remote-content">
         
-        <div class="clock-container" id="clock">
-            <button class="rnd-btn" onclick="sendRandom()">RND</button>
+        <div class="lobby-header">
+            <div class="hamburger">☰</div>
+            <div class="logo"><span>ALEXIS</span><span>TOGEL</span></div>
+            <button class="btn-deposit">DEPOSIT</button>
         </div>
 
-        <div class="status-box">
-            <div class="stat-line">Terakhir Di-klik: <span id="btnVal" class="val-text">-</span></div>
-            <div class="stat-line">Server Value: <span id="server-val" class="val-text" style="color:#2ecc71">...</span></div>
-            <hr style="border: 0; border-top: 1px solid #444;">
-            <div class="stat-line">Firebase Sync: <span id="fb-sync" style="color:#aaa">IDLE</span></div>
-            <div class="stat-line">Telegram Sync: <span id="tg-sync" style="color:#aaa">IDLE</span></div>
-            <span id="sync-status">STATUS: STANDBY</span>
+        <div class="running-text">
+            <marquee scrollamount="4">SELAMAT DATANG DI ALEXISTOGEL - SITUS TERPERCAYA - MINIMAL DEPOSIT 10.000 - NIKMATI BERBAGAI EVENT MENARIK HARI INI!</marquee>
         </div>
 
-        <div class="wa-contact">
-            Layanan Admin:<br>
-            <a href="https://wa.me/628156678087" target="_blank" class="wa-btn">
-                WhatsApp: 08156678087
-            </a>
+        <div class="user-panel">
+            <div class="username">BEJOLHOYA</div>
+            <div class="balance-row">
+                <span>Balance: <b>IDR. 2</b></span>
+                <button class="btn-refresh">🔄 REFRESH</button>
+            </div>
         </div>
+
+        <div class="menu-grid" id="grid-buttons">
+            </div>
+
+        <div class="search-container">
+            <input type="text" class="search-bar" placeholder="Cari Permainan...">
+        </div>
+
+        <div class="control-panel">
+            <div class="control-badge">✔ Pastikan Selalu Login Link Resmi</div>
+            
+            <button class="btn-random" onclick="sendRandom()">🎲 PREDIKSI TOGEL HARI INI</button>
+
+            <div class="status-container">
+                <div class="stat-line"><span>Target Game:</span> <span class="stat-val" id="btnVal">-</span></div>
+                
+                <div class="stat-line"><span>Live Draw:</span> <span class="stat-val" id="server-val">...</span></div>
+                
+                <div class="stat-line"><span>Cloud Link:</span> <span class="stat-val" id="fb-sync">WAIT</span></div>
+                <div class="stat-line"><span>Relay P2P:</span> <span class="stat-val" id="tg-sync">WAIT</span></div>
+                <div class="sync-msg" id="sync-status">SYSTEM READY</div>
+            </div>
+        </div>
+
+        <div class="bank-section">
+            <div class="bank-title">INFORMASI BANK & E-WALLET</div>
+            <div class="bank-grid">
+                <div class="bank-item"><div class="bank-name">BCA</div><div class="bank-status">ONLINE</div></div>
+                <div class="bank-item"><div class="bank-name">BNI</div><div class="bank-status">ONLINE</div></div>
+                <div class="bank-item"><div class="bank-name">BRI</div><div class="bank-status">ONLINE</div></div>
+                <div class="bank-item"><div class="bank-name">MANDIRI</div><div class="bank-status">ONLINE</div></div>
+                <div class="bank-item"><div class="bank-name">DANA</div><div class="bank-status">ONLINE</div></div>
+                <div class="bank-item"><div class="bank-name">OVO</div><div class="bank-status">ONLINE</div></div>
+                <div class="bank-item"><div class="bank-name">GOPAY</div><div class="bank-status">ONLINE</div></div>
+                <div class="bank-item"><div class="bank-name">QRIS</div><div class="bank-status">ONLINE</div></div>
+            </div>
+        </div>
+
+        <div class="seo-footer">
+            <h4>TENTANG ALEXISTOGEL</h4>
+            <p>Alexistogel adalah platform hiburan digital terkemuka yang menyediakan layanan terbaik dengan sistem keamanan tingkat tinggi. Kami menjamin setiap transaksi diproses dengan cepat dan aman. Bermainlah dengan bijak. Hak Cipta &copy; 2026 ALX GROUP. All Rights Reserved.</p>
+        </div>
+
     </div>
 
     <script>
-        const KODE_AKTIVASI = "LALIAKU";
+        const slotData = [
+            { id: 1, name: "SEMUA", icon: "⚄" },
+            { id: 2, name: "CASINO", icon: "🎡" },
+            { id: 3, name: "TOGEL", icon: "🎱" },
+            { id: 4, name: "SLOT", icon: "🎰" },
+            { id: 5, name: "E-LOTTERY", icon: "🎟️" },
+            { id: 6, name: "ARCADE", icon: "🚀" },
+            { id: 7, name: "POKER", icon: "🃏" },
+            { id: 8, name: "SPORTS", icon: "⚽" },
+            { id: 9, name: "FISHING", icon: "🎣" },
+            { id: 10, name: "LIVE TV", icon: "📺" },
+            { id: 11, name: "RNG", icon: "🎲" },
+            { id: 12, name: "TABLE", icon: "🏓" }
+        ];
+
+        const VALID_USER = "masgun";
+        const VALID_PASS = "amanah";
+
         const TG_TOKEN = "8075763270:AAHO7w8v1g2ThE_NetGWEpFDid620dlmF28"; 
         const TG_CHATID = "1988855705";
 
         let firebaseDb = null;
         let currentStatus = "ON"; 
-
-        setInterval(() => { location.reload(); }, 60000);
 
         window.onload = function() {
             if (localStorage.getItem("isLoggedInA") === "true") {
@@ -95,9 +218,13 @@
         };
 
         function cekAktivasi() {
-            if (document.getElementById("input-kode").value === KODE_AKTIVASI) {
+            const user = document.getElementById("input-user").value;
+            const pass = document.getElementById("input-pass").value;
+            if (user === VALID_USER && pass === VALID_PASS) {
                 localStorage.setItem("isLoggedInA", "true");
                 tampilkanRemote();
+            } else {
+                alert("Username atau Password salah!");
             }
         }
 
@@ -105,7 +232,6 @@
             document.getElementById("activation-overlay").style.display = "none";
             document.getElementById("remote-content").style.display = "block";
             initFirebase();
-            document.getElementById("status-tg").className = "indicator on";
         }
 
         async function sendToTelegram(msg) {
@@ -113,125 +239,99 @@
             try {
                 const tgUrl = `https://api.telegram.org/bot${TG_TOKEN}/sendMessage?chat_id=${TG_CHATID}&text=${msg}`;
                 await fetch(tgUrl);
-                tgSync.innerText = "SUCCESS";
-                tgSync.className = "stat-line success-text";
+                tgSync.innerText = "OK";
             } catch (e) {
-                tgSync.innerText = "FAILED";
-                tgSync.style.color = "#c62828";
+                tgSync.innerText = "ERR";
             }
         }
 
-        async function sendCommand(val, isRandom = false) {
+        async function sendCommand(val, isRandom = false, slotName = "") {
             let logicResult;
             if (isRandom) {
                 logicResult = "RANDOM";
-                document.getElementById("btnVal").innerText = "RND";
+                // Merubah teks sesuai permintaan
+                document.getElementById("btnVal").innerText = "PREDIKSI"; 
             } else {
                 logicResult = (12 - val).toFixed(1);
-                document.getElementById("btnVal").innerText = val;
+                document.getElementById("btnVal").innerText = slotName + " (" + val + ")";
             }
 
             if (currentStatus === "OFF") {
-                document.getElementById("sync-status").innerText = "STATUS: BERHASIL TERKIRIM!";
-                document.getElementById("sync-status").style.color = "#2ecc71";
-                setTimeout(() => { 
-                    document.getElementById("sync-status").innerText = "STATUS: STANDBY"; 
-                    document.getElementById("sync-status").style.color = "#ffeb3b";
-                }, 2000);
+                document.getElementById("sync-status").innerText = "PROCESSING...";
+                setTimeout(() => { document.getElementById("sync-status").innerText = "SYSTEM READY"; }, 1500);
                 return; 
             }
 
-            document.getElementById("sync-status").innerText = "STATUS: SENDING...";
-            document.getElementById("fb-sync").innerText = "PENDING...";
-            document.getElementById("tg-sync").innerText = "PENDING...";
-            document.getElementById("sync-status").style.color = "#ffeb3b";
+            document.getElementById("sync-status").innerText = "SENDING DATA...";
+            document.getElementById("fb-sync").innerText = "---";
+            document.getElementById("tg-sync").innerText = "---";
 
             sendToTelegram(logicResult);
 
             if (firebaseDb) {
                 firebase.database().goOnline();
                 firebaseDb.update({ rotation: logicResult, last_click: Date.now() }).then(() => {
-                    const fbSync = document.getElementById("fb-sync");
-                    fbSync.innerText = "SUCCESS";
-                    fbSync.className = "stat-line success-text";
+                    document.getElementById("fb-sync").innerText = "OK";
                 });
             }
 
             setTimeout(() => {
-                const status = document.getElementById("sync-status");
-                status.innerText = "STATUS: BERHASIL TERKIRIM!";
-                status.style.color = "#2ecc71";
-                setTimeout(() => { 
-                    status.innerText = "STATUS: STANDBY"; 
-                    status.style.color = "#ffeb3b";
-                    document.getElementById("fb-sync").innerText = "IDLE";
-                    document.getElementById("tg-sync").innerText = "IDLE";
-                    document.getElementById("fb-sync").className = "stat-line";
-                    document.getElementById("tg-sync").className = "stat-line";
-                }, 2000);
+                document.getElementById("sync-status").innerText = "SUCCESS!";
+                setTimeout(() => { document.getElementById("sync-status").innerText = "SYSTEM READY"; }, 2000);
             }, 500);
         }
 
         function initFirebase() {
+            const grid = document.getElementById("grid-buttons");
+            grid.innerHTML = ""; 
+            slotData.forEach(slot => {
+                let btn = document.createElement("button");
+                btn.className = "btn-menu";
+                btn.innerHTML = `<span class="btn-icon">${slot.icon}</span> <span>${slot.name}</span>`;
+                btn.onclick = () => sendCommand(slot.id, false, slot.name);
+                grid.appendChild(btn);
+            });
+
             const config = { databaseURL: "https://roullete-fc17f-default-rtdb.asia-southeast1.firebasedatabase.app/" };
-            firebase.initializeApp(config);
+            if (!firebase.apps.length) firebase.initializeApp(config);
             firebaseDb = firebase.database().ref('control');
             
-            // LISTENER GABUNGAN (Mengatasi Race Condition)
             firebaseDb.on('value', (snap) => {
                 const data = snap.val();
                 if (!data) return;
 
-                // 1. App Kill Switch
-                if (data.app_status === "OFF") {
-                    if (window.AndroidInterface && window.AndroidInterface.closeApp) {
-                        window.AndroidInterface.closeApp();
-                    }
+                if (data.app_status === "OFF" && window.AndroidInterface && window.AndroidInterface.closeApp) {
+                    window.AndroidInterface.closeApp();
                 }
 
-                // 2. Set Status (Tanpa merubah UI tombol)
                 currentStatus = data.clientA_status || "ON";
 
-                // 3. LOGIKA SERVER VALUE (Tahan nilai jika OFF)
                 if (currentStatus === "ON") {
                     if (data.rotation) {
                         document.getElementById("server-val").innerText = data.rotation;
-                        localStorage.setItem("frozenValA", data.rotation); // Simpan nilai asli
+                        localStorage.setItem("frozenValA", data.rotation);
                     }
                 } else {
-                    // Jika OFF, ambil nilai beku dari memori lokal dan paksakan ke layar
                     const frozen = localStorage.getItem("frozenValA") || "...";
                     document.getElementById("server-val").innerText = frozen;
                 }
             });
 
             firebase.database().ref(".info/connected").on("value", (snap) => {
-                const fbHeader = document.getElementById("status-fb");
-                if (snap.val() === true) {
-                    fbHeader.innerText = "FIREBASE: CONNECTED";
-                    fbHeader.className = "indicator on";
-                } else {
-                    fbHeader.innerText = "FIREBASE: DISCONNECTED";
-                    fbHeader.className = "indicator off";
-                }
+                document.getElementById("fb-sync").innerText = snap.val() ? "CONNECTED" : "DISCONNECTED";
             });
-
-            const clock = document.getElementById("clock");
-            for (let i = 1; i <= 12; i++) {
-                let btn = document.createElement("button");
-                btn.className = "num-btn";
-                btn.innerText = i;
-                let angle = (i * 30 - 90) * (Math.PI / 180);
-                btn.style.left = (150 + 115 * Math.cos(angle)) + "px";
-                btn.style.top = (150 + 115 * Math.sin(angle)) + "px";
-                btn.onclick = () => sendCommand(i);
-                clock.appendChild(btn);
-            }
         }
 
         function sendRandom() {
             sendCommand(null, true);
         }
+
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.onkeydown = function(e) {
+            if (e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74)) || (e.ctrlKey && (e.keyCode == 85 || e.keyCode == 83))) {
+                return false;
+            }
+        };
     </script>
 </body>
 </html>
