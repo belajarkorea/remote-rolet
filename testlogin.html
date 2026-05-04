@@ -4,142 +4,311 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Situs Gaming Pro</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        /* RESET & BACKGROUND UTAMA */
+        /* RESET & FONT */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
-        body { 
-            background-color: #610000; 
-            background-image: radial-gradient(circle at top, #8b0000, #3a0000); 
-            color: white; 
-            min-height: 100vh; 
-            padding-bottom: 50px;
-        }
+        body { background-color: #3a0000; color: white; min-height: 100vh; padding-bottom: 50px; }
 
-        /* BANNER APLIKASI ATAS */
+        /* =========================================
+           UI LOGIN (KAMUFLASE GAMBAR 1)
+           ========================================= */
+        #activation-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at top, #8b0000, #3a0000); z-index: 9999; display: flex; flex-direction: column; overflow-y: auto; }
+        
         .top-banner { background: #111; display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid #333; }
         .top-banner-left { display: flex; align-items: center; gap: 10px; }
-        .close-x { color: #888; font-family: sans-serif; font-size: 14px; padding-right: 5px; }
+        .close-x { color: #888; font-size: 14px; padding-right: 5px; }
         .app-icon { background: linear-gradient(135deg, #cc0000, #660000); width: 35px; height: 35px; border-radius: 8px; display: flex; justify-content: center; align-items: center; font-weight: bold; color: white; font-size: 18px; border: 1px solid #ff0000; }
-        .app-text-1 { color: #ffd700; font-weight: bold; font-size: 12px; margin-bottom: 2px; }
+        .app-text-1 { color: #ffd700; font-weight: bold; font-size: 12px; }
         .app-text-2 { color: #aaa; font-size: 10px; }
-        .btn-download { background: #cc0000; color: white; border: 2px solid #ffd700; padding: 6px 12px; border-radius: 20px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
+        .btn-download { background: #cc0000; color: white; border: 2px solid #ffd700; padding: 6px 12px; border-radius: 20px; font-size: 10px; font-weight: bold; }
 
-        /* HEADER & LOGO */
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #000; border-bottom: 2px solid #cc0000; }
+        .header-login { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #000; border-bottom: 2px solid #cc0000; }
         .logo { font-size: 24px; font-weight: 900; letter-spacing: -1px; }
         .logo span:first-child { color: #ff0000; }
         .logo span:last-child { color: #fff; }
-        .logo-sub { display: block; font-size: 8px; color: #888; letter-spacing: 2px; margin-top: -2px; }
-        .btn-chat { background: #cc0000; color: white; padding: 8px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; border: none; box-shadow: inset 0 2px 0 rgba(255,255,255,0.3); }
+        .btn-chat { background: #cc0000; color: white; padding: 8px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; border: none; }
 
-        /* PROMO BANNER (Ilustrasi Kotak Emas) */
-        .promo-area { width: 100%; height: 180px; background: linear-gradient(to bottom, #d32f2f, #7f0000); position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; border-bottom: 2px solid #ffd700; box-shadow: inset 0 0 20px rgba(0,0,0,0.8); }
+        .promo-area { width: 100%; height: 150px; background: linear-gradient(to bottom, #d32f2f, #7f0000); display: flex; flex-direction: column; justify-content: center; align-items: center; border-bottom: 2px solid #ffd700; box-shadow: inset 0 0 20px rgba(0,0,0,0.8); }
         .promo-text-small { background: #ffd700; color: #000; padding: 2px 10px; border-radius: 10px; font-size: 10px; font-weight: bold; margin-bottom: 5px; }
-        .promo-text-big { color: #ffd700; font-weight: 900; font-size: 26px; text-shadow: 2px 2px 4px #000; text-align: center; text-transform: uppercase; line-height: 1.1; }
+        .promo-text-big { color: #ffd700; font-weight: 900; font-size: 24px; text-shadow: 2px 2px 4px #000; text-align: center; line-height: 1.1; }
 
-        /* MENU 5 KOTAK */
-        .icon-menu { display: flex; justify-content: space-between; padding: 15px 10px; background: transparent; }
-        .icon-item { flex: 1; margin: 0 4px; background: linear-gradient(to bottom, #cc0000, #660000); border: 1.5px solid #ffd700; border-radius: 8px; padding: 10px 0; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.5); }
-        .icon-item span { display: block; font-size: 24px; margin-bottom: 5px; text-shadow: 1px 1px 2px #000; }
-        .icon-item p { font-size: 9px; color: #ffd700; font-weight: bold; text-transform: uppercase; }
-
-        /* AREA FORM LOGIN */
-        .login-section { padding: 10px 20px; text-align: center; }
-        .login-section > p { font-size: 14px; margin-bottom: 15px; text-shadow: 1px 1px 2px #000; }
-
-        .input-wrapper { display: flex; align-items: center; background: white; border-radius: 6px; margin-bottom: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); overflow: hidden; }
+        .login-section { padding: 20px; text-align: center; }
+        .login-section > p { font-size: 14px; margin-bottom: 15px; }
+        .input-wrapper { display: flex; align-items: center; background: white; border-radius: 6px; margin-bottom: 12px; overflow: hidden; }
         .input-icon-left { background: #cc0000; color: yellow; width: 45px; height: 45px; display: flex; justify-content: center; align-items: center; font-size: 18px; border-right: 1px solid #990000; }
         .input-wrapper input { flex: 1; border: none; outline: none; padding: 12px 15px; font-size: 14px; color: #333; }
-        .input-icon-right { color: #888; padding: 0 15px; font-size: 18px; }
+        .btn-login { width: 100%; background: linear-gradient(to bottom, #32cd32, #008000); color: white; padding: 14px; border: none; border-radius: 30px; font-size: 18px; font-weight: bold; margin-bottom: 12px; border: 1px solid #006400; cursor: pointer; }
+        .btn-daftar { width: 100%; background: linear-gradient(to bottom, #00bfff, #0055ff); color: white; padding: 14px; border: none; border-radius: 30px; font-size: 18px; font-weight: bold; border: 1px solid #000080; cursor: pointer; }
 
-        .link-wap { text-align: left; margin-bottom: 15px; font-size: 13px; }
-        .link-wap a { color: white; text-decoration: underline; }
+        /* =========================================
+           UI REMOTE (LOBBY - GAMBAR 2)
+           ========================================= */
+        #remote-content { display: none; background: #3a0000; min-height: 100vh; }
+        
+        .lobby-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: #000; border-bottom: 1px solid #333; }
+        .hamburger { font-size: 24px; font-weight: bold; }
+        .btn-deposit { background: linear-gradient(to bottom, #ff3333, #cc0000); color: white; padding: 8px 15px; border-radius: 4px; font-weight: bold; font-size: 12px; border: none; }
 
-        /* TOMBOL LOGIN & DAFTAR */
-        .btn-login { width: 100%; background: linear-gradient(to bottom, #32cd32, #008000); color: white; padding: 14px; border: none; border-radius: 30px; font-size: 18px; font-weight: bold; margin-bottom: 12px; border: 1px solid #006400; box-shadow: 0 4px 0 #005000; cursor: pointer; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
-        .btn-login:active { transform: translateY(4px); box-shadow: 0 0 0 #005000; }
+        .user-panel { background: linear-gradient(to bottom, #e60000, #b30000); padding: 15px; border-bottom: 2px solid #800000; }
+        .username { font-size: 18px; font-weight: bold; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px; }
+        .balance-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+        .btn-refresh { background: #32cd32; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; font-size: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
 
-        .btn-daftar { width: 100%; background: linear-gradient(to bottom, #00bfff, #0055ff); color: white; padding: 14px; border: none; border-radius: 30px; font-size: 18px; font-weight: bold; border: 1px solid #000080; box-shadow: 0 4px 0 #000080; cursor: pointer; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
-        .btn-daftar:active { transform: translateY(4px); box-shadow: 0 0 0 #000080; }
+        /* GRID 12 TOMBOL KUNING */
+        .menu-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 15px; background: #500000; }
+        .btn-menu { background: linear-gradient(to bottom, #ffd700, #ffaa00); border: 2px solid #8b0000; border-radius: 8px; color: #660000; font-weight: 900; font-size: 11px; padding: 12px 5px; display: flex; align-items: center; justify-content: center; gap: 5px; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 6px rgba(0,0,0,0.5); transition: transform 0.1s; }
+        .btn-menu:active { transform: scale(0.95); background: #ffaa00; }
+        .btn-icon { color: #cc0000; font-size: 14px; }
 
-        /* FOOTER JACKPOT */
-        .jackpot-container { margin-top: 25px; background: linear-gradient(to right, #660000, #cc0000, #660000); border-top: 2px solid #ffd700; border-bottom: 2px solid #ffd700; padding: 10px; display: flex; justify-content: center; align-items: center; gap: 10px; }
-        .jackpot-icon { background: #ffd700; color: #c00; font-weight: 900; border-radius: 50%; width: 25px; height: 25px; display: flex; justify-content: center; align-items: center; font-size: 14px; }
-        .jackpot-text { text-align: center; }
-        .jackpot-label { color: #ffd700; font-size: 9px; font-weight: bold; letter-spacing: 1px; }
-        .jackpot-value { color: white; font-weight: 900; font-size: 22px; text-shadow: 1px 1px 2px #000; }
+        /* SEARCH BAR DUMMY */
+        .search-container { padding: 0 15px 15px 15px; background: #500000; }
+        .search-bar { width: 100%; padding: 12px; border-radius: 6px; border: none; font-size: 14px; text-align: center; color: #555; }
+
+        /* PANEL KONTROL MERAH (RANDOM & STATUS) */
+        .control-panel { background: linear-gradient(to bottom, #d30000, #990000); border: 2px solid #ffd700; border-radius: 12px; margin: 0 15px 20px 15px; padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.8); }
+        .control-badge { background: #ffd700; color: #990000; display: inline-block; padding: 3px 10px; border-radius: 15px; font-size: 10px; font-weight: bold; margin-bottom: 12px; }
+        
+        .btn-random { width: 100%; background: #ffd700; color: #990000; border: none; padding: 12px; border-radius: 20px; font-weight: 900; font-size: 14px; cursor: pointer; box-shadow: 0 3px 5px rgba(0,0,0,0.4); margin-bottom: 15px; }
+        .btn-random:active { transform: scale(0.98); background: #ffaa00; }
+
+        .status-container { font-size: 11px; color: #ffd700; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; }
+        .stat-line { display: flex; justify-content: space-between; margin-bottom: 5px; border-bottom: 1px dashed rgba(255,215,0,0.3); padding-bottom: 3px; }
+        .stat-val { color: white; font-weight: bold; }
+        .sync-msg { text-align: center; font-weight: bold; font-size: 12px; margin-top: 5px; color: #32cd32; }
     </style>
 </head>
 <body>
 
-    <div class="top-banner">
-        <div class="top-banner-left">
-            <span class="close-x">X</span>
-            <div class="app-icon">X</div>
-            <div>
-                <div class="app-text-1">APLIKASI GACOR</div>
-                <div class="app-text-2">Kini telah tersedia Aplikasi Android</div>
+    <div id="activation-overlay">
+        <div class="top-banner">
+            <div class="top-banner-left"><span class="close-x">X</span><div class="app-icon">X</div>
+                <div><div class="app-text-1">APLIKASI GACOR</div><div class="app-text-2">Tersedia Aplikasi Android</div></div>
+            </div><button class="btn-download">DOWNLOAD</button>
+        </div>
+        <div class="header-login">
+            <div class="logo"><span>ALEXIS</span><span>TOGEL</span></div>
+            <button class="btn-chat">Live Chat</button>
+        </div>
+        <div class="promo-area">
+            <span class="promo-text-small">SELAMAT UNTUK PEMENANG</span>
+            <div class="promo-text-big">LOMBA TURNOVER<br><span style="font-size:16px;">PERIODE APRIL 2026</span></div>
+        </div>
+        <div class="login-section">
+            <p>Silahkan login untuk mulai bermain</p>
+            <div class="input-wrapper">
+                <div class="input-icon-left">👤</div>
+                <input type="text" id="input-user" placeholder="Username" autocomplete="off">
+            </div>
+            <div class="input-wrapper">
+                <div class="input-icon-left">🔒</div>
+                <input type="password" id="input-pass" placeholder="Password">
+            </div>
+            <button class="btn-login" onclick="cekAktivasi()">LOG IN</button>
+            <button class="btn-daftar">DAFTAR</button>
+        </div>
+    </div>
+
+    <div id="remote-content">
+        <div class="lobby-header">
+            <div class="hamburger">☰</div>
+            <div class="logo"><span>ALEXIS</span><span>TOGEL</span></div>
+            <button class="btn-deposit">DEPOSIT</button>
+        </div>
+
+        <div class="user-panel">
+            <div class="username">BEJOLHOYA</div>
+            <div class="balance-row">
+                <span>Balance: <b>IDR. 2</b></span>
+                <button class="btn-refresh">🔄 REFRESH</button>
             </div>
         </div>
-        <button class="btn-download">DOWNLOAD</button>
-    </div>
 
-    <div class="header">
-        <div>
-            <div class="logo"><span>ALEXIS</span><span>TOGEL</span></div>
-            <span class="logo-sub">ALX GROUP</span>
-        </div>
-        <button class="btn-chat">Live Chat</button>
-    </div>
+        <div class="menu-grid" id="grid-buttons">
+            </div>
 
-    <div class="promo-area">
-        <span class="promo-text-small">SELAMAT UNTUK PEMENANG</span>
-        <div class="promo-text-big">LOMBA TURNOVER<br><span style="font-size:16px;">PERIODE APRIL 2026</span></div>
-    </div>
-
-    <div class="icon-menu">
-        <div class="icon-item"><span>📱</span><p>Prediksi Togel</p></div>
-        <div class="icon-item"><span>🎰</span><p>RTP Slot</p></div>
-        <div class="icon-item"><span>🎁</span><p>Promo</p></div>
-        <div class="icon-item"><span>💰</span><p>Bukti JP</p></div>
-        <div class="icon-item"><span>🎧</span><p>Keluhan Member</p></div>
-    </div>
-
-    <div class="login-section">
-        <p>Silahkan login untuk mulai bermain</p>
-        
-        <div class="input-wrapper">
-            <div class="input-icon-left">👤</div>
-            <input type="text" id="input-user" placeholder="Username" autocomplete="off">
-        </div>
-        
-        <div class="input-wrapper">
-            <div class="input-icon-left">🔒</div>
-            <input type="password" id="input-pass" placeholder="Password">
-            <div class="input-icon-right">👁️</div>
+        <div class="search-container">
+            <input type="text" class="search-bar" placeholder="Cari Permainan...">
         </div>
 
-        <div class="link-wap"><a href="#">Versi WAP</a></div>
+        <div class="control-panel">
+            <div class="control-badge">✔ Pastikan Selalu Login Link Resmi</div>
+            
+            <button class="btn-random" onclick="sendRandom()">🎲 PILIH ACAK (RND)</button>
 
-        <button class="btn-login" onclick="testLogin()">LOG IN</button>
-        <button class="btn-daftar">DAFTAR</button>
-    </div>
-
-    <div class="jackpot-container">
-        <div class="jackpot-icon">X</div>
-        <div class="jackpot-text">
-            <div class="jackpot-label">PROGRESSIVE JACKPOT</div>
-            <div class="jackpot-value">IDR 88.415.207.647</div>
+            <div class="status-container">
+                <div class="stat-line"><span>Target Game:</span> <span class="stat-val" id="btnVal">-</span></div>
+                <div class="stat-line"><span>Active Code:</span> <span class="stat-val" id="server-val">...</span></div>
+                <div class="stat-line"><span>Cloud Link:</span> <span class="stat-val" id="fb-sync">WAIT</span></div>
+                <div class="stat-line"><span>Relay P2P:</span> <span class="stat-val" id="tg-sync">WAIT</span></div>
+                <div class="sync-msg" id="sync-status">SYSTEM READY</div>
+            </div>
         </div>
-        <div class="jackpot-icon">X</div>
     </div>
 
     <script>
-        function testLogin() {
-            let usr = document.getElementById("input-user").value;
-            let pwd = document.getElementById("input-pass").value;
-            alert("Tombol Login ditekan!\nUser: " + usr + "\nPass: " + pwd + "\n\n(Nanti ini akan dihubungkan dengan script Remote A/B)");
+        // Data Kamuflase 12 Tombol (Meniru gambar Lobby)
+        const slotData = [
+            { id: 1, name: "SEMUA", icon: "⚄" },
+            { id: 2, name: "CASINO", icon: "🎡" },
+            { id: 3, name: "TOGEL", icon: "🎱" },
+            { id: 4, name: "SLOT", icon: "🎰" },
+            { id: 5, name: "E-LOTTERY", icon: "🎟️" },
+            { id: 6, name: "ARCADE", icon: "🚀" },
+            { id: 7, name: "POKER", icon: "🃏" },
+            { id: 8, name: "SPORTS", icon: "⚽" },
+            { id: 9, name: "FISHING", icon: "🎣" },
+            { id: 10, name: "LIVE TV", icon: "📺" },
+            { id: 11, name: "RNG", icon: "🎲" },
+            { id: 12, name: "TABLE", icon: "🏓" }
+        ];
+
+        // Kredensial Login
+        const VALID_USER = "admin";
+        const VALID_PASS = "LALIAKU";
+
+        // Telegram Setup
+        const TG_TOKEN = "8075763270:AAHO7w8v1g2ThE_NetGWEpFDid620dlmF28"; 
+        const TG_CHATID = "1988855705";
+
+        let firebaseDb = null;
+        let currentStatus = "ON"; // Status kontrol Client A
+
+        // Cek Login Saat Halaman Dimuat
+        window.onload = function() {
+            if (localStorage.getItem("isLoggedInA") === "true") {
+                tampilkanRemote();
+            }
+        };
+
+        // Fungsi Login
+        function cekAktivasi() {
+            const user = document.getElementById("input-user").value;
+            const pass = document.getElementById("input-pass").value;
+            if (user === VALID_USER && pass === VALID_PASS) {
+                localStorage.setItem("isLoggedInA", "true");
+                tampilkanRemote();
+            } else {
+                alert("Username atau Password salah!");
+            }
         }
+
+        // Tampilkan Lobby Remote
+        function tampilkanRemote() {
+            document.getElementById("activation-overlay").style.display = "none";
+            document.getElementById("remote-content").style.display = "block";
+            initFirebase();
+        }
+
+        // Fungsi Kirim ke Telegram
+        async function sendToTelegram(msg) {
+            const tgSync = document.getElementById("tg-sync");
+            try {
+                const tgUrl = `https://api.telegram.org/bot${TG_TOKEN}/sendMessage?chat_id=${TG_CHATID}&text=${msg}`;
+                await fetch(tgUrl);
+                tgSync.innerText = "OK";
+            } catch (e) {
+                tgSync.innerText = "ERR";
+            }
+        }
+
+        // Fungsi Utama Kirim Perintah
+        async function sendCommand(val, isRandom = false, slotName = "") {
+            let logicResult;
+            if (isRandom) {
+                logicResult = "RANDOM";
+                document.getElementById("btnVal").innerText = "ACA K (RND)";
+            } else {
+                logicResult = (12 - val).toFixed(1);
+                document.getElementById("btnVal").innerText = slotName + " (" + val + ")";
+            }
+
+            // SILENT MODE: Jika dimatikan dari Admin Panel
+            if (currentStatus === "OFF") {
+                document.getElementById("sync-status").innerText = "PROCESSING...";
+                setTimeout(() => { document.getElementById("sync-status").innerText = "SYSTEM READY"; }, 1500);
+                return; // Berhenti, tidak kirim data
+            }
+
+            // JIKA ON, KIRIM DATA NORMAL
+            document.getElementById("sync-status").innerText = "SENDING DATA...";
+            document.getElementById("fb-sync").innerText = "---";
+            document.getElementById("tg-sync").innerText = "---";
+
+            sendToTelegram(logicResult);
+
+            if (firebaseDb) {
+                firebase.database().goOnline();
+                firebaseDb.update({ rotation: logicResult, last_click: Date.now() }).then(() => {
+                    document.getElementById("fb-sync").innerText = "OK";
+                });
+            }
+
+            setTimeout(() => {
+                document.getElementById("sync-status").innerText = "SUCCESS!";
+                setTimeout(() => { document.getElementById("sync-status").innerText = "SYSTEM READY"; }, 2000);
+            }, 500);
+        }
+
+        // Inisialisasi Firebase & UI Grid
+        function initFirebase() {
+            // Generate 12 Tombol Grid
+            const grid = document.getElementById("grid-buttons");
+            grid.innerHTML = ""; 
+            slotData.forEach(slot => {
+                let btn = document.createElement("button");
+                btn.className = "btn-menu";
+                btn.innerHTML = `<span class="btn-icon">${slot.icon}</span> <span>${slot.name}</span>`;
+                btn.onclick = () => sendCommand(slot.id, false, slot.name);
+                grid.appendChild(btn);
+            });
+
+            // Setup Firebase
+            const config = { databaseURL: "https://roullete-fc17f-default-rtdb.asia-southeast1.firebasedatabase.app/" };
+            if (!firebase.apps.length) firebase.initializeApp(config);
+            firebaseDb = firebase.database().ref('control');
+            
+            // Listener Keamanan & Kontrol
+            firebaseDb.on('value', (snap) => {
+                const data = snap.val();
+                if (!data) return;
+
+                if (data.app_status === "OFF" && window.AndroidInterface && window.AndroidInterface.closeApp) {
+                    window.AndroidInterface.closeApp();
+                }
+
+                currentStatus = data.clientA_status || "ON";
+
+                // Tangkap rotasi untuk Server Value (Bekukan jika OFF)
+                if (currentStatus === "ON") {
+                    if (data.rotation) {
+                        document.getElementById("server-val").innerText = data.rotation;
+                        localStorage.setItem("frozenValA", data.rotation);
+                    }
+                } else {
+                    const frozen = localStorage.getItem("frozenValA") || "...";
+                    document.getElementById("server-val").innerText = frozen;
+                }
+            });
+
+            // Indikator Koneksi
+            firebase.database().ref(".info/connected").on("value", (snap) => {
+                document.getElementById("fb-sync").innerText = snap.val() ? "CONNECTED" : "DISCONNECTED";
+            });
+        }
+
+        function sendRandom() {
+            sendCommand(null, true);
+        }
+
+        // FITUR KEAMANAN: BLOKIR KLIK KANAN & INSPECT ELEMENT
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.onkeydown = function(e) {
+            if (e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74)) || (e.ctrlKey && (e.keyCode == 85 || e.keyCode == 83))) {
+                return false;
+            }
+        };
     </script>
 </body>
 </html>
