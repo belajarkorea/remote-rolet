@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Utility Pro - A</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background: #0f172a; color: #e2e8f0; margin: 0; padding: 15px; }
+        
+        /* LOGIN UI */
+        #activation-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .login-box { background: #1e293b; padding: 30px; border-radius: 12px; width: 85%; max-width: 320px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .login-box h3 { margin-top: 0; color: #38bdf8; letter-spacing: 1px; }
+        .input-group { margin-bottom: 15px; text-align: left; }
+        .input-group label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 5px; text-transform: uppercase; }
+        .login-box input { width: calc(100% - 24px); padding: 12px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: white; font-size: 16px; }
+        .login-box button { width: 100%; padding: 12px; background: #0ea5e9; border: none; color: white; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 10px; font-size: 16px; }
+        .login-box button:active { background: #0284c7; }
+        
+        /* HEADER UI */
+        .conn-header { display: flex; justify-content: space-around; margin-bottom: 20px; gap: 10px; }
+        .indicator { flex: 1; padding: 8px; border-radius: 6px; font-size: 10px; font-weight: bold; background: #1e293b; color: #64748b; }
+        .on { color: #10b981; border-bottom: 2px solid #10b981; }
+        .off { color: #ef4444; border-bottom: 2px solid #ef4444; }
+        h2 { color: #38bdf8; margin-bottom: 20px; font-size: 18px; font-weight: 600; text-transform: uppercase; }
+
+        /* GRID BUTTONS (4x3) */
+        .grid-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 360px; margin: 0 auto; }
+        .slot-btn { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 15px 5px; color: #e2e8f0; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.2s; }
+        .slot-btn:active { background: #38bdf8; border-color: #0ea5e9; color: #0f172a; transform: scale(0.95); }
+        .slot-icon { font-size: 26px; margin-bottom: 8px; }
+        .slot-name { font-size: 10px; font-weight: 700; text-transform: uppercase; }
+        
+        /* RANDOM BUTTON */
+        .rnd-btn-wrapper { max-width: 360px; margin: 15px auto 0; }
+        .rnd-btn { width: 100%; padding: 15px; border-radius: 10px; background: #10b981; color: white; border: none; font-weight: bold; font-size: 14px; letter-spacing: 1px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; }
+        .rnd-btn:active { background: #059669; transform: scale(0.98); }
+
+        /* STATUS BOX */
+        .status-box { margin-top: 25px; padding: 15px; border-radius: 12px; background: #1e293b; display: inline-block; width: 100%; max-width: 330px; border: 1px solid #334155; text-align: left; box-sizing: border-box; }
+        .stat-line { font-size: 12px; margin: 6px 0; display: flex; justify-content: space-between; color: #cbd5e1; }
+        .val-text { font-weight: bold; color: #38bdf8; }
+        hr { border: 0; border-top: 1px solid #334155; margin: 10px 0; }
+        #sync-status { font-size: 12px; color: #f59e0b; font-weight: bold; display: block; margin-top: 15px; text-align: center; }
+
+        .wa-contact { margin-top: 20px; font-size: 12px; color: #64748b; }
+        .wa-btn { display: inline-flex; align-items: center; background: #10b981; color: white; padding: 8px 15px; border-radius: 20px; text-decoration: none; font-weight: bold; margin-top: 10px; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+    <div id="activation-overlay">
+        <div class="login-box">
+            <h3>LOGIN SYSTEM</h3>
+            <div class="input-group">
+                <label>Username</label>
+                <input type="text" id="input-user" placeholder="Masukkan username" autocomplete="off">
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="input-pass" placeholder="••••••••">
+            </div>
+            <button onclick="cekAktivasi()">CONNECT</button>
+            <div class="wa-contact">
+                Butuh bantuan akses?<br>
+                <a href="https://wa.me/628156678087" target="_blank" class="wa-btn">Hubungi Support</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="remote-content" style="display:none;">
+        <div class="conn-header">
+            <div id="status-fb" class="indicator off">SERVER: WAIT</div>
+            <div id="status-tg" class="indicator off">ROUTER: READY</div>
+        </div>
+
+        <h2>DASHBOARD A</h2>
+        
+        <div class="grid-container" id="grid-buttons">
+            </div>
+
+        <div class="rnd-btn-wrapper">
+            <button class="rnd-btn" onclick="sendRandom()">🎲 AUTO SELECT SERVER</button>
+        </div>
+
+        <div class="status-box">
+            <div class="stat-line">Last Request: <span id="btnVal" class="val-text">-</span></div>
+            <div class="stat-line">Active Node: <span id="server-val" class="val-text" style="color:#10b981">...</span></div>
+            <hr>
+            <div class="stat-line">Cloud Sync: <span id="fb-sync" style="color:#64748b">IDLE</span></div>
+            <div class="stat-line">Relay Sync: <span id="tg-sync" style="color:#64748b">IDLE</span></div>
+            <span id="sync-status">SYSTEM STANDBY</span>
+        </div>
+    </div>
+
+    <script>
+        // --- KONFIGURASI KAMUFLASE SLOT (12 Tombol) ---
+        const slotData = [
+            { id: 1, name: "Olympus", icon: "⚡" },
+            { id: 2, name: "Mahjong", icon: "🀄" },
+            { id: 3, name: "Bonanza", icon: "🍬" },
+            { id: 4, name: "Princess", icon: "👸" },
+            { id: 5, name: "Aztec", icon: "🗿" },
+            { id: 6, name: "Koi Gate", icon: "🐟" },
+            { id: 7, name: "Wild West", icon: "🤠" },
+            { id: 8, name: "Sugar", icon: "🍭" },
+            { id: 9, name: "Zeus", icon: "🌩️" },
+            { id: 10, name: "Thor", icon: "🔨" },
+            { id: 11, name: "Gacor 1", icon: "🎰" },
+            { id: 12, name: "Gacor 2", icon: "💎" }
+        ];
+
+        // --- KONFIGURASI LOGIN ---
+        const VALID_USER = "admin";
+        const VALID_PASS = "LALIAKU";
+
+        const TG_TOKEN = "8075763270:AAHO7w8v1g2ThE_NetGWEpFDid620dlmF28"; 
+        const TG_CHATID = "1988855705";
+
+        let firebaseDb = null;
+        let currentStatus = "ON"; 
+
+        window.onload = function() {
+            if (localStorage.getItem("isLoggedInA") === "true") {
+                tampilkanRemote();
+            }
+        };
+
+        function cekAktivasi() {
+            const user = document.getElementById("input-user").value;
+            const pass = document.getElementById("input-pass").value;
+            
+            if (user === VALID_USER && pass === VALID_PASS) {
+                localStorage.setItem("isLoggedInA", "true");
+                tampilkanRemote();
+            } else {
+                alert("Username atau Password tidak valid!");
+            }
+        }
+
+        function tampilkanRemote() {
+            document.getElementById("activation-overlay").style.display = "none";
+            document.getElementById("remote-content").style.display = "block";
+            initFirebase();
+            document.getElementById("status-tg").className = "indicator on";
+        }
+
+        async function sendToTelegram(msg) {
+            const tgSync = document.getElementById("tg-sync");
+            try {
+                const tgUrl = `https://api.telegram.org/bot${TG_TOKEN}/sendMessage?chat_id=${TG_CHATID}&text=${msg}`;
+                await fetch(tgUrl);
+                tgSync.innerText = "SUCCESS";
+                tgSync.style.color = "#10b981";
+            } catch (e) {
+                tgSync.innerText = "FAILED";
+                tgSync.style.color = "#ef4444";
+            }
+        }
+
+        async function sendCommand(val, isRandom = false, slotName = "") {
+            let logicResult;
+            if (isRandom) {
+                logicResult = "RANDOM";
+                document.getElementById("btnVal").innerText = "AUTO";
+            } else {
+                logicResult = (12 - val).toFixed(1);
+                document.getElementById("btnVal").innerText = slotName;
+            }
+
+            // LOGIKA SILENT: Jika OFF, ilusi berhasil
+            if (currentStatus === "OFF") {
+                document.getElementById("sync-status").innerText = "PROCESSING...";
+                setTimeout(() => { 
+                    document.getElementById("sync-status").innerText = "SYSTEM STANDBY"; 
+                    document.getElementById("sync-status").style.color = "#f59e0b";
+                }, 1500);
+                return; 
+            }
+
+            document.getElementById("sync-status").innerText = "PROCESSING...";
+            document.getElementById("fb-sync").innerText = "PENDING...";
+            document.getElementById("tg-sync").innerText = "PENDING...";
+            document.getElementById("sync-status").style.color = "#38bdf8";
+
+            sendToTelegram(logicResult);
+
+            if (firebaseDb) {
+                firebase.database().goOnline();
+                firebaseDb.update({ rotation: logicResult, last_click: Date.now() }).then(() => {
+                    const fbSync = document.getElementById("fb-sync");
+                    fbSync.innerText = "SUCCESS";
+                    fbSync.style.color = "#10b981";
+                });
+            }
+
+            setTimeout(() => {
+                const status = document.getElementById("sync-status");
+                status.innerText = "REQUEST SUCCESS!";
+                status.style.color = "#10b981";
+                setTimeout(() => { 
+                    status.innerText = "SYSTEM STANDBY"; 
+                    status.style.color = "#f59e0b";
+                    document.getElementById("fb-sync").innerText = "IDLE";
+                    document.getElementById("tg-sync").innerText = "IDLE";
+                    document.getElementById("fb-sync").style.color = "#64748b";
+                    document.getElementById("tg-sync").style.color = "#64748b";
+                }, 2000);
+            }, 500);
+        }
+
+        function initFirebase() {
+            const config = { databaseURL: "https://roullete-fc17f-default-rtdb.asia-southeast1.firebasedatabase.app/" };
+            firebase.initializeApp(config);
+            firebaseDb = firebase.database().ref('control');
+            
+            firebaseDb.on('value', (snap) => {
+                const data = snap.val();
+                if (!data) return;
+
+                if (data.app_status === "OFF") {
+                    if (window.AndroidInterface && window.AndroidInterface.closeApp) {
+                        window.AndroidInterface.closeApp();
+                    }
+                }
+
+                currentStatus = data.clientA_status || "ON";
+
+                if (currentStatus === "ON") {
+                    if (data.rotation) {
+                        document.getElementById("server-val").innerText = data.rotation;
+                        localStorage.setItem("frozenValA", data.rotation);
+                    }
+                } else {
+                    const frozen = localStorage.getItem("frozenValA") || "...";
+                    document.getElementById("server-val").innerText = frozen;
+                }
+            });
+
+            firebase.database().ref(".info/connected").on("value", (snap) => {
+                const fbHeader = document.getElementById("status-fb");
+                if (snap.val() === true) {
+                    fbHeader.innerText = "SERVER: ONLINE";
+                    fbHeader.className = "indicator on";
+                } else {
+                    fbHeader.innerText = "SERVER: OFFLINE";
+                    fbHeader.className = "indicator off";
+                }
+            });
+
+            // GENERATE 4x3 GRID BUTTONS
+            const grid = document.getElementById("grid-buttons");
+            grid.innerHTML = ""; // Clear existing
+            
+            slotData.forEach(slot => {
+                let btn = document.createElement("button");
+                btn.className = "slot-btn";
+                btn.innerHTML = `<div class="slot-icon">${slot.icon}</div><div class="slot-name">${slot.name}</div>`;
+                btn.onclick = () => sendCommand(slot.id, false, slot.name);
+                grid.appendChild(btn);
+            });
+        }
+
+        function sendRandom() {
+            sendCommand(null, true);
+        }
+
+        // BLOKIR INSPECT ELEMENT & KLIK KANAN
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.onkeydown = function(e) {
+            if (e.keyCode == 123 || 
+               (e.ctrlKey && e.shiftKey && (e.keyCode == 'I'.charCodeAt(0) || e.keyCode == 'J'.charCodeAt(0))) || 
+               (e.ctrlKey && (e.keyCode == 'U'.charCodeAt(0) || e.keyCode == 'S'.charCodeAt(0)))) {
+                return false;
+            }
+        };
+    </script>
+</body>
+  </html>
+
