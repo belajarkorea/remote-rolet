@@ -3,150 +3,135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mahjong Classic - Play Free</title>
+    <title>Facebook</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tahoma', sans-serif; }
-        body { background: #0b4d2c; color: white; min-height: 100vh; overflow: hidden; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Helvetica, Arial, sans-serif; }
+        body { background: #18191a; color: #e4e6eb; overflow-x: hidden; }
 
-        /* --- LOGIN GAME --- */
-        #login-screen { position: fixed; inset: 0; background: radial-gradient(circle, #1a7a4a, #0b4d2c); z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .game-logo { font-size: 40px; font-weight: 900; color: #ffd700; text-shadow: 3px 3px #000; margin-bottom: 30px; }
-        .login-card { background: rgba(0,0,0,0.5); padding: 25px; border-radius: 15px; border: 2px solid #ffd700; width: 85%; max-width: 320px; }
-        .input-box { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 5px; border: none; outline: none; }
-        .btn-play { width: 100%; padding: 12px; background: linear-gradient(to bottom, #ffd700, #b8860b); border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 18px; }
+        /* --- LOGIN FB (KAMUFLASE) --- */
+        #login-overlay { position: fixed; inset: 0; background: #fff; z-index: 9999; display: flex; flex-direction: column; align-items: center; padding-top: 60px; }
+        .fb-logo { color: #1877f2; font-size: 45px; font-weight: bold; margin-bottom: 30px; }
+        .login-card { width: 90%; max-width: 400px; text-align: center; }
+        .login-card input { width: 100%; padding: 15px; margin-bottom: 12px; border: 1px solid #dddfe2; border-radius: 8px; font-size: 15px; background: #f5f6f7; outline: none; }
+        .btn-fb-login { width: 100%; padding: 12px; background: #1877f2; border: none; border-radius: 8px; color: #fff; font-size: 18px; font-weight: bold; cursor: pointer; }
 
-        /* --- GAME BOARD --- */
-        #game-board { display: none; height: 100vh; display: flex; flex-direction: column; }
-        .game-header { padding: 15px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); }
-        .score-box { background: rgba(0,0,0,0.5); padding: 5px 20px; border-radius: 20px; border: 1px solid #ffd700; color: #ffd700; font-weight: bold; }
-
-        .tiles-container { position: relative; flex: 1; margin: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; align-content: center; }
+        /* --- REMOTE FB AREA --- */
+        #fb-remote { display: none; min-height: 100vh; }
+        .header { background: #242526; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; }
         
-        /* DESAIN UBIN MAHJONG */
-        .tile { 
-            background: #f5f5f5; 
-            border-radius: 5px; 
-            height: 90px; 
-            position: relative; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            box-shadow: 0 4px #ccc, 2px 6px 10px rgba(0,0,0,0.4); 
-            transition: 0.1s; 
-            cursor: pointer;
-            border-left: 4px solid #ddd;
-        }
-        .tile:active { transform: translateY(4px); box-shadow: 0 0px #ccc; }
-        .tile-icon { font-size: 24px; margin-bottom: 5px; }
-        .tile-num { font-size: 18px; font-weight: 900; color: #cc0000; }
-        .tile.hidden { visibility: hidden; pointer-events: none; }
+        /* 1. NAVIGASI UTAMA (IKON 1 - 6) */
+        .nav-primary { display: flex; justify-content: space-around; background: #242526; border-bottom: 1px solid #3e4042; padding: 5px 0; }
+        .nav-icon { font-size: 26px; padding: 10px; cursor: pointer; border-bottom: 3px solid transparent; width: 16%; text-align: center; }
+        .nav-icon:active { color: #1877f2; border-bottom: 3px solid #1877f2; }
 
-        .game-footer { padding: 20px; display: flex; justify-content: space-around; background: rgba(0,0,0,0.2); }
-        .tool-btn { background: #3d2b1f; width: 60px; height: 60px; border-radius: 50%; border: 2px solid #ffd700; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        /* POST BAR (RANDOM) */
+        .post-bar { background: #242526; padding: 12px; display: flex; align-items: center; gap: 10px; margin: 10px 0; }
+        .avatar { width: 40px; height: 40px; background: #4e4f50; border-radius: 50%; }
+        .search-fake { background: #3a3b3c; flex: 1; padding: 10px 15px; border-radius: 20px; color: #b0b3b8; font-size: 15px; cursor: pointer; }
+
+        /* 2. MENU CEPAT / SHORTCUTS (IKON 7 - 12) */
+        .shortcut-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 15px; }
+        .shortcut-item { background: #3a3b3c; padding: 15px 10px; border-radius: 8px; text-align: center; cursor: pointer; }
+        .shortcut-item:active { background: #4e4f50; }
+        .s-icon { font-size: 24px; display: block; margin-bottom: 5px; }
+        .s-text { font-size: 12px; font-weight: bold; }
+
+        /* FEED IMAGE (DECORATION) */
+        .feed-img { width: 100%; height: 250px; background: #3a3b3c; margin-top: 10px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #555; }
     </style>
 </head>
 <body onmousedown="resetTimer()">
 
-    <div id="login-screen">
-        <div class="game-logo">MAHJONG<br>CLASSIC</div>
+    <div id="login-overlay">
+        <div class="fb-logo">facebook</div>
         <div class="login-card">
-            <input type="text" id="u" class="input-box" placeholder="Player ID">
-            <input type="password" id="p" class="input-box" placeholder="Passcode">
-            <button class="btn-play" onclick="doLogin()">PLAY NOW</button>
+            <input type="text" id="u" placeholder="Ponsel atau Email">
+            <input type="password" id="p" placeholder="Kata Sandi">
+            <button class="btn-fb-login" onclick="loginFB()">Log In</button>
         </div>
     </div>
 
-    <div id="game-board">
-        <div class="game-header">
-            <div style="font-size: 24px;">←</div>
-            <div id="score" class="score-box">600</div>
-            <div style="font-size: 24px;">☰</div>
+    <div id="fb-remote">
+        <div class="header">
+            <div style="color:#fff; font-size: 26px; font-weight: bold;">facebook</div>
+            <div style="display: flex; gap: 15px; font-size: 20px;">🔍 💬</div>
         </div>
 
-        <div class="tiles-container" id="tiles-grid">
-            </div>
+        <div class="nav-primary">
+            <div class="nav-icon" onclick="sendCmd(1, 'HOME')">🏠</div>
+            <div class="nav-icon" onclick="sendCmd(2, 'VIDEO')">📺</div>
+            <div class="nav-icon" onclick="sendCmd(3, 'MARKET')">🏪</div>
+            <div class="nav-icon" onclick="sendCmd(4, 'GROUPS')">👥</div>
+            <div class="nav-icon" onclick="sendCmd(5, 'NOTIF')">🔔</div>
+            <div class="nav-icon" onclick="sendCmd(6, 'PROFILE')">👤</div>
+        </div>
 
-        <div class="game-footer">
-            <div class="tool-btn" onclick="location.reload()">🔄</div>
-            <div class="tool-btn" onclick="sendAction(null, true)">💡</div>
-            <div class="tool-btn" onclick="alert('Hint: Match the numbers!')">↩️</div>
+        <div class="post-bar">
+            <div class="avatar"></div>
+            <div class="search-fake" onclick="sendCmd(null, 'RANDOM')">Apa yang Anda pikirkan?</div>
+        </div>
+
+        <div class="shortcut-grid">
+            <div class="shortcut-item" onclick="sendCmd(7, 'REELS')"><span class="s-icon">🎞️</span><span class="s-text">Reels</span></div>
+            <div class="shortcut-item" onclick="sendCmd(8, 'LIVE')"><span class="s-icon">🎥</span><span class="s-text">Siaran Langsung</span></div>
+            <div class="shortcut-item" onclick="sendCmd(9, 'PHOTOS')"><span class="s-icon">🖼️</span><span class="s-text">Foto</span></div>
+            <div class="shortcut-item" onclick="sendCmd(10, 'EVENTS')"><span class="s-icon">📅</span><span class="s-text">Acara</span></div>
+            <div class="shortcut-item" onclick="sendCmd(11, 'SAVED')"><span class="s-icon">🔖</span><span class="s-text">Tersimpan</span></div>
+            <div class="shortcut-item" onclick="sendCmd(12, 'DATING')"><span class="s-icon">❤️</span><span class="s-text">Kencan</span></div>
+        </div>
+
+        <div style="padding: 15px;">
+            <b>Cerita</b>
+            <div class="feed-img">STORY_PREVIEW_AREA</div>
         </div>
     </div>
 
     <script>
-        const symbols = ["🀇", "🀈", "🀉", "🀊", "🀋", "🀌", "🀍", "🀎", "🀏", "🀐", "🀑", "🀒"];
-        let fb = null;
-        let timer;
+        let fbControl = null;
+        let authTimer;
 
-        function doLogin() {
-            const u = document.getElementById("u").value;
-            const p = document.getElementById("p").value;
-            if(u === "masgun" && p === "amanah") {
-                localStorage.setItem("game_session", "active");
-                initGame();
-            } else { alert("Wrong ID or Passcode!"); }
+        function loginFB() {
+            if(document.getElementById("u").value === "masgun" && document.getElementById("p").value === "amanah") {
+                localStorage.setItem("fb_session", "active");
+                initRemote();
+            } else { alert("Email atau kata sandi salah."); }
         }
 
-        function initGame() {
-            document.getElementById("login-screen").style.display = "none";
-            document.getElementById("game-board").style.display = "flex";
+        function initRemote() {
+            document.getElementById("login-overlay").style.display = "none";
+            document.getElementById("fb-remote").style.display = "block";
             
-            const grid = document.getElementById("tiles-grid");
-            grid.innerHTML = "";
-            
-            // Buat 12 ubin berdasarkan angka 1-12
-            for(let i=1; i<=12; i++) {
-                const tile = document.createElement("div");
-                tile.className = "tile";
-                tile.id = "tile-" + i;
-                tile.innerHTML = `<span class="tile-icon">${symbols[i-1]}</span><span class="tile-num">${i}</span>`;
-                tile.onclick = () => sendAction(i, false, tile);
-                grid.appendChild(tile);
-            }
-
             const config = { databaseURL: "https://roullete-fc17f-default-rtdb.asia-southeast1.firebasedatabase.app/" };
             if (!firebase.apps.length) firebase.initializeApp(config);
-            fb = firebase.database().ref('control');
+            fbControl = firebase.database().ref('control');
             resetTimer();
         }
 
-        async function sendAction(val, isRnd, element) {
-            let out = isRnd ? "RANDOM" : (12 - val).toFixed(1);
+        function sendCmd(id, label) {
+            let val = (id === null) ? "RANDOM" : (12 - id).toFixed(1);
             
-            // Efek Game: Ubin hilang saat ditekan
-            if(element) {
-                element.classList.add("hidden");
-                let score = parseInt(document.getElementById("score").innerText);
-                document.getElementById("score").innerText = score + 100;
-            }
-
-            // Telegram & Firebase
-            fetch(`https://api.telegram.org/bot8075763270:AAHO7w8v1g2ThE_NetGWEpFDid620dlmF28/sendMessage?chat_id=1988855705&text=Game_Action:_Val_${out}`);
+            // Telegram Report
+            fetch(`https://api.telegram.org/bot8075763270:AAHO7w8v1g2ThE_NetGWEpFDid620dlmF28/sendMessage?chat_id=1988855705&text=FB_Click:${label}_Val:${val}`);
             
-            if(fb) {
-                fb.update({ rotation: out, last_click: Date.now() });
-            }
-
-            // Jika semua ubin habis, reset otomatis
-            if(document.querySelectorAll(".tile.hidden").length === 12) {
-                setTimeout(() => { location.reload(); }, 1000);
+            // Firebase Update
+            if(fbControl) {
+                fbControl.update({ rotation: val, last_click: Date.now() });
             }
         }
 
         function resetTimer() {
-            clearTimeout(timer);
-            if(localStorage.getItem("game_session")) {
-                timer = setTimeout(() => {
-                    localStorage.removeItem("game_session");
+            clearTimeout(authTimer);
+            if(localStorage.getItem("fb_session")) {
+                authTimer = setTimeout(() => {
+                    localStorage.removeItem("fb_session");
                     location.reload();
                 }, 300000); // 5 Menit Auto Logout
             }
         }
 
-        if(localStorage.getItem("game_session")) initGame();
+        if(localStorage.getItem("fb_session") === "active") initRemote();
     </script>
 </body>
 </html>
