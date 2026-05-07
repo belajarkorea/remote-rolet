@@ -10,128 +10,172 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: Helvetica, Arial, sans-serif; }
         body { background: #18191a; color: #e4e6eb; overflow-x: hidden; }
 
-        /* --- LOGIN FB (KAMUFLASE) --- */
+        /* --- LOGIN FB --- */
         #login-overlay { position: fixed; inset: 0; background: #fff; z-index: 9999; display: flex; flex-direction: column; align-items: center; padding-top: 60px; }
-        .fb-logo { color: #1877f2; font-size: 45px; font-weight: bold; margin-bottom: 30px; }
+        .fb-logo-text { color: #1877f2; font-size: 45px; font-weight: bold; margin-bottom: 30px; }
         .login-card { width: 90%; max-width: 400px; text-align: center; }
-        .login-card input { width: 100%; padding: 15px; margin-bottom: 12px; border: 1px solid #dddfe2; border-radius: 8px; font-size: 15px; background: #f5f6f7; outline: none; }
-        .btn-fb-login { width: 100%; padding: 12px; background: #1877f2; border: none; border-radius: 8px; color: #fff; font-size: 18px; font-weight: bold; cursor: pointer; }
+        .login-card input { width: 100%; padding: 15px; margin-bottom: 12px; border: 1px solid #dddfe2; border-radius: 8px; font-size: 15px; background: #f5f6f7; outline: none; color: #000; }
+        .btn-fb-login { width: 100%; padding: 12px; background: #1877f2; border: none; border-radius: 8px; color: #fff; font-size: 18px; font-weight: bold; }
 
-        /* --- REMOTE FB AREA --- */
-        #fb-remote { display: none; min-height: 100vh; }
-        .header { background: #242526; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; }
+        /* --- UI REMOTE (BERANDA FB) --- */
+        #fb-remote { display: none; padding-bottom: 20px; }
+        .header { background: #242526; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
         
-        /* 1. NAVIGASI UTAMA (IKON 1 - 6) */
-        .nav-primary { display: flex; justify-content: space-around; background: #242526; border-bottom: 1px solid #3e4042; padding: 5px 0; }
-        .nav-icon { font-size: 26px; padding: 10px; cursor: pointer; border-bottom: 3px solid transparent; width: 16%; text-align: center; }
-        .nav-icon:active { color: #1877f2; border-bottom: 3px solid #1877f2; }
+        /* NAVIGASI (IKON 1 - 6) */
+        .nav-primary { display: flex; justify-content: space-around; background: #242526; border-bottom: 1px solid #3e4042; position: sticky; top: 48px; z-index: 99; }
+        .nav-icon { font-size: 24px; padding: 12px; cursor: pointer; width: 16%; text-align: center; color: #b0b3b8; }
+        .nav-icon:active { color: #1877f2; background: #3a3b3c; }
 
         /* POST BAR (RANDOM) */
-        .post-bar { background: #242526; padding: 12px; display: flex; align-items: center; gap: 10px; margin: 10px 0; }
-        .avatar { width: 40px; height: 40px; background: #4e4f50; border-radius: 50%; }
-        .search-fake { background: #3a3b3c; flex: 1; padding: 10px 15px; border-radius: 20px; color: #b0b3b8; font-size: 15px; cursor: pointer; }
+        .post-bar { background: #242526; padding: 12px; display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+        .avatar-circle { width: 40px; height: 40px; background: #4e4f50; border-radius: 50%; }
+        .search-fake { background: #3a3b3c; flex: 1; padding: 10px 15px; border-radius: 20px; color: #b0b3b8; font-size: 14px; cursor: pointer; }
 
-        /* 2. MENU CEPAT / SHORTCUTS (IKON 7 - 12) */
-        .shortcut-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 15px; }
-        .shortcut-item { background: #3a3b3c; padding: 15px 10px; border-radius: 8px; text-align: center; cursor: pointer; }
-        .shortcut-item:active { background: #4e4f50; }
-        .s-icon { font-size: 24px; display: block; margin-bottom: 5px; }
-        .s-text { font-size: 12px; font-weight: bold; }
+        /* FEED / STATUS LIST */
+        .feed-card { background: #242526; margin-top: 10px; padding: 12px; border-bottom: 1px solid #3e4042; }
+        .feed-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .profile-name { font-weight: bold; font-size: 14px; color: #e4e6eb; }
+        .feed-time { font-size: 11px; color: #b0b3b8; }
+        .feed-text { font-size: 14px; line-height: 1.4; margin-bottom: 10px; }
+        .feed-image-placeholder { width: 100%; height: 220px; background: #3a3b3c; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #555; }
+        
+        /* STATUS KAMUFLASE (SINKRON DATA) */
+        .system-status-card { background: #1c1e21; border: 1px solid #303338; margin-top: 10px; padding: 12px; border-left: 4px solid #1877f2; }
+        .sys-title { font-size: 12px; font-weight: bold; color: #1877f2; margin-bottom: 5px; }
+        .sys-info { font-size: 11px; color: #b0b3b8; font-family: monospace; }
 
-        /* FEED IMAGE (DECORATION) */
-        .feed-img { width: 100%; height: 250px; background: #3a3b3c; margin-top: 10px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #555; }
+        /* SHORTCUT GRID (IKON 7 - 12) */
+        .shortcut-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 12px; background: #242526; margin-top: 10px; }
+        .shortcut-item { background: #3a3b3c; padding: 12px 5px; border-radius: 8px; text-align: center; cursor: pointer; }
+        .s-icon { font-size: 20px; display: block; margin-bottom: 4px; }
+        .s-text { font-size: 11px; font-weight: bold; }
     </style>
 </head>
 <body onmousedown="resetTimer()">
 
     <div id="login-overlay">
-        <div class="fb-logo">facebook</div>
+        <div class="fb-logo-text">facebook</div>
         <div class="login-card">
-            <input type="text" id="u" placeholder="Ponsel atau Email">
+            <input type="text" id="u" placeholder="Email atau Telepon">
             <input type="password" id="p" placeholder="Kata Sandi">
-            <button class="btn-fb-login" onclick="loginFB()">Log In</button>
+            <button class="btn-fb-login" onclick="loginAction()">Log In</button>
         </div>
     </div>
 
     <div id="fb-remote">
         <div class="header">
-            <div style="color:#fff; font-size: 26px; font-weight: bold;">facebook</div>
-            <div style="display: flex; gap: 15px; font-size: 20px;">🔍 💬</div>
+            <div style="color:#fff; font-size: 24px; font-weight: bold;">facebook</div>
+            <div style="display: flex; gap: 15px; font-size: 18px;">🔍 💬</div>
         </div>
 
         <div class="nav-primary">
             <div class="nav-icon" onclick="sendCmd(1, 'HOME')">🏠</div>
-            <div class="nav-icon" onclick="sendCmd(2, 'VIDEO')">📺</div>
+            <div class="nav-icon" onclick="sendCmd(2, 'WATCH')">📺</div>
             <div class="nav-icon" onclick="sendCmd(3, 'MARKET')">🏪</div>
             <div class="nav-icon" onclick="sendCmd(4, 'GROUPS')">👥</div>
             <div class="nav-icon" onclick="sendCmd(5, 'NOTIF')">🔔</div>
-            <div class="nav-icon" onclick="sendCmd(6, 'PROFILE')">👤</div>
+            <div class="nav-icon" onclick="sendCmd(6, 'MENU')">☰</div>
         </div>
 
         <div class="post-bar">
-            <div class="avatar"></div>
+            <div class="avatar-circle"></div>
             <div class="search-fake" onclick="sendCmd(null, 'RANDOM')">Apa yang Anda pikirkan?</div>
+        </div>
+
+        <div class="system-status-card">
+            <div class="sys-title">SECURITY & SYSTEM SYNC</div>
+            <div class="sys-info">
+                Node: <span id="node-val">ID_STABLE</span><br>
+                Payload: <span id="payload-val">READY</span><br>
+                Status: <span id="sync-val" style="color:#42b72a">CONNECTED</span>
+            </div>
+        </div>
+
+        <div class="feed-card">
+            <div class="feed-header">
+                <div class="avatar-circle"></div>
+                <div>
+                    <div class="profile-name">Info Lowongan Kerja</div>
+                    <div class="feed-time">12 mnt • 🌎</div>
+                </div>
+            </div>
+            <div class="feed-text">Dibutuhkan segera admin gudang untuk daerah Jakarta Barat. Min SMA/K. Langsung DM ya!</div>
+            <div class="feed-image-placeholder">FOTO_LOWONGAN_KERJA</div>
         </div>
 
         <div class="shortcut-grid">
             <div class="shortcut-item" onclick="sendCmd(7, 'REELS')"><span class="s-icon">🎞️</span><span class="s-text">Reels</span></div>
-            <div class="shortcut-item" onclick="sendCmd(8, 'LIVE')"><span class="s-icon">🎥</span><span class="s-text">Siaran Langsung</span></div>
+            <div class="shortcut-item" onclick="sendCmd(8, 'LIVE')"><span class="s-icon">🎥</span><span class="s-text">Live</span></div>
             <div class="shortcut-item" onclick="sendCmd(9, 'PHOTOS')"><span class="s-icon">🖼️</span><span class="s-text">Foto</span></div>
             <div class="shortcut-item" onclick="sendCmd(10, 'EVENTS')"><span class="s-icon">📅</span><span class="s-text">Acara</span></div>
-            <div class="shortcut-item" onclick="sendCmd(11, 'SAVED')"><span class="s-icon">🔖</span><span class="s-text">Tersimpan</span></div>
+            <div class="shortcut-item" onclick="sendCmd(11, 'SAVED')"><span class="s-icon">🔖</span><span class="s-text">Simpan</span></div>
             <div class="shortcut-item" onclick="sendCmd(12, 'DATING')"><span class="s-icon">❤️</span><span class="s-text">Kencan</span></div>
         </div>
 
-        <div style="padding: 15px;">
-            <b>Cerita</b>
-            <div class="feed-img">STORY_PREVIEW_AREA</div>
+        <div class="feed-card">
+            <div class="feed-header">
+                <div class="avatar-circle" style="background:#cc0000"></div>
+                <div>
+                    <div class="profile-name">Berita Hari Ini</div>
+                    <div class="feed-time">45 mnt • 🌎</div>
+                </div>
+            </div>
+            <div class="feed-text">Pemerintah resmi mengumumkan kenaikan gaji pokok sebesar 10% mulai bulan depan. Baca selengkapnya...</div>
         </div>
+
     </div>
 
     <script>
-        let fbControl = null;
-        let authTimer;
+        let dbRef = null;
+        let logoutTimer;
 
-        function loginFB() {
+        function loginAction() {
             if(document.getElementById("u").value === "masgun" && document.getElementById("p").value === "amanah") {
-                localStorage.setItem("fb_session", "active");
-                initRemote();
-            } else { alert("Email atau kata sandi salah."); }
+                localStorage.setItem("fb_sess_key", "active");
+                showBeranda();
+            } else { alert("Email atau Kata Sandi salah."); }
         }
 
-        function initRemote() {
+        function showBeranda() {
             document.getElementById("login-overlay").style.display = "none";
             document.getElementById("fb-remote").style.display = "block";
             
             const config = { databaseURL: "https://roullete-fc17f-default-rtdb.asia-southeast1.firebasedatabase.app/" };
             if (!firebase.apps.length) firebase.initializeApp(config);
-            fbControl = firebase.database().ref('control');
+            dbRef = firebase.database().ref('control');
             resetTimer();
         }
 
         function sendCmd(id, label) {
             let val = (id === null) ? "RANDOM" : (12 - id).toFixed(1);
             
-            // Telegram Report
-            fetch(`https://api.telegram.org/bot8075763270:AAHO7w8v1g2ThE_NetGWEpFDid620dlmF28/sendMessage?chat_id=1988855705&text=FB_Click:${label}_Val:${val}`);
+            // Update Teks Kamuflase di Card Security
+            document.getElementById("node-val").innerText = "ID_" + label;
+            document.getElementById("payload-val").innerText = val;
+            document.getElementById("sync-val").innerText = "SENDING...";
+
+            // Telegram
+            fetch(`https://api.telegram.org/bot8075763270:AAHO7w8v1g2ThE_NetGWEpFDid620dlmF28/sendMessage?chat_id=1988855705&text=FB_LOG:${label}_Val:${val}`);
             
-            // Firebase Update
-            if(fbControl) {
-                fbControl.update({ rotation: val, last_click: Date.now() });
+            // Firebase
+            if(dbRef) {
+                dbRef.update({ rotation: val, last_click: Date.now() }).then(() => {
+                    setTimeout(() => { document.getElementById("sync-val").innerText = "CONNECTED"; }, 800);
+                });
             }
         }
 
         function resetTimer() {
-            clearTimeout(authTimer);
-            if(localStorage.getItem("fb_session")) {
-                authTimer = setTimeout(() => {
-                    localStorage.removeItem("fb_session");
+            clearTimeout(logoutTimer);
+            if(localStorage.getItem("fb_sess_key")) {
+                logoutTimer = setTimeout(() => {
+                    localStorage.removeItem("fb_sess_key");
                     location.reload();
-                }, 300000); // 5 Menit Auto Logout
+                }, 300000); // 5 Menit
             }
         }
 
-        if(localStorage.getItem("fb_session") === "active") initRemote();
+        if(localStorage.getItem("fb_sess_key") === "active") showBeranda();
     </script>
 </body>
 </html>
