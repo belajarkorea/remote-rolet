@@ -10,31 +10,33 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: Helvetica, Arial, sans-serif; }
         body { background: #18191a; color: #e4e6eb; -webkit-tap-highlight-color: transparent; }
 
-        /* HEADER & NAVIGATION */
+        /* --- HEADER & NAV --- */
         .header { background: #242526; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #3e4042; }
         .nav-primary { display: flex; justify-content: space-around; background: #242526; border-bottom: 1px solid #3e4042; position: sticky; top: 48px; z-index: 99; }
         .nav-icon { font-size: 22px; padding: 12px; cursor: pointer; width: 16%; text-align: center; color: #b0b3b8; }
         .nav-icon:active { color: #1877f2; }
 
-        /* POST BAR (RANDOM) */
+        /* --- POST BAR --- */
         .post-bar { background: #242526; padding: 12px; display: flex; align-items: center; gap: 10px; margin-top: 8px; }
         .avatar { width: 38px; height: 38px; background: #4e4f50; border-radius: 50%; overflow: hidden; }
         .avatar img { width: 100%; height: 100%; object-fit: cover; }
         .search-fake { background: #3a3b3c; flex: 1; padding: 9px 15px; border-radius: 20px; color: #b0b3b8; font-size: 14px; cursor: pointer; }
 
-        /* SYSTEM STATUS CARD (KAMUFLASE) */
+        /* --- SYSTEM STATUS --- */
         .system-status-card { background: #1c1e21; border-top: 2px solid #1877f2; padding: 12px; margin-top: 8px; font-size: 11px; }
         .sys-info { font-family: monospace; color: #b0b3b8; }
 
-        /* FEED CONTENT */
+        /* --- FEED CARD --- */
         .feed-card { background: #242526; margin-top: 10px; padding: 12px; border-bottom: 1px solid #3e4042; }
         .feed-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
         .profile-name { font-weight: bold; font-size: 14px; }
+        .feed-time { font-size: 12px; color: #b0b3b8; }
         .feed-text { font-size: 14px; line-height: 1.4; margin-bottom: 12px; }
         .media-box { width: 100%; border-radius: 8px; overflow: hidden; background: #000; margin-top: 5px; }
         .media-box img, .media-box video { width: 100%; display: block; }
 
-        /* SHORTCUT GRID (7-12) */
+        /* --- BUTTONS --- */
+        .btn-wa { display: block; width: 100%; padding: 10px; background: #25d366; color: white; text-align: center; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 10px; font-size: 14px; }
         .shortcut-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 12px; background: #242526; }
         .shortcut-item { background: #3a3b3c; padding: 12px 5px; border-radius: 8px; text-align: center; cursor: pointer; font-size: 11px; font-weight: bold; }
     </style>
@@ -64,7 +66,7 @@
         <div class="system-status-card">
             <div style="color:#1877f2; font-weight:bold; margin-bottom:5px;">SECURITY & SYSTEM SYNC</div>
             <div class="sys-info">
-                Node: <span id="node-val">STABLE</span> | Payload: <span id="payload-val">READY</span><br>
+                Node: <span id="node-val">ID_STABLE</span> | Payload: <span id="payload-val">READY</span><br>
                 Status: <span id="sync-val" style="color:#42b72a">CONNECTED</span>
             </div>
         </div>
@@ -72,9 +74,9 @@
         <div class="feed-card">
             <div class="feed-header">
                 <div class="avatar"><img src="https://i.ibb.co/3Y8Nf6q/fb-avatar.png"></div>
-                <div><div class="profile-name">Info Dunia Komedi</div><div class="feed-time">10 mnt • 🌎</div></div>
+                <div><div class="profile-name">Video Lucu Dunia</div><div class="feed-time">12 mnt • 🌎</div></div>
             </div>
-            <div class="feed-text">Ketawa itu sehat, asal jangan sendirian di pinggir jalan! 😂 #comedy #funny</div>
+            <div class="feed-text">Coba lihat aksi menggemaskan ini! 😍 #lucu #viral</div>
             <div class="media-box">
                 <video controls muted loop><source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4"></video>
             </div>
@@ -88,38 +90,54 @@
             <div class="shortcut-item" onclick="sendCmd(11, 'SAVE')">🔖<br>Simpan</div>
             <div class="shortcut-item" onclick="sendCmd(12, 'DATE')">❤️<br>Kencan</div>
         </div>
+
+        <div class="feed-card">
+            <div class="feed-header">
+                <div class="avatar" style="background:#cc0000"></div>
+                <div><div class="profile-name">Jual Beli HP Second</div><div class="feed-time">32 mnt • 🌎</div></div>
+            </div>
+            <div class="feed-text">Promo cuci gudang! iPhone 11 Pro Max mulus, nominus. Harga nego sampai jadi. Minat? Klik tombol WA di bawah!</div>
+            <div class="media-box">
+                <img src="https://i.ibb.co/Y3mX0vK/loker-indo.jpg">
+            </div>
+            <a href="https://wa.me/628156678087" class="btn-wa">Chat Penjual (WhatsApp)</a>
+        </div>
     </div>
 
     <script>
         let dbRef = null;
-        let isAdminLocked = true;
+        let isAdminLocked = false;
 
-        // Firebase Setup
+        // Firebase Configuration
         const config = { databaseURL: "https://roullete-fc17f-default-rtdb.asia-southeast1.firebasedatabase.app/" };
         if (!firebase.apps.length) firebase.initializeApp(config);
         dbRef = firebase.database().ref('control');
 
-        // MONITOR STATUS & AUTO LOGOUT
-        dbRef.on('value', (snapshot) => {
-            const data = snapshot.val();
-            const nodeLabel = document.getElementById("node-val");
+        // Monitoring Real-time Database
+        dbRef.on('value', (s) => {
+            const d = s.val();
+            isAdminLocked = (d && (d.clientA_status === "OFF" || d.app_status === "OFF"));
             
-            if (data && data.clientA_status === "ON" && data.app_status !== "OFF") {
-                isAdminLocked = false;
-                nodeLabel.innerText = "ID_STABLE";
+            const nodeLabel = document.getElementById("node-val");
+            if (isAdminLocked) {
+                nodeLabel.innerText = "STABLE"; 
             } else {
-                isAdminLocked = true;
-                nodeLabel.innerText = "STABLE";
-                
-                // AUTO LOGOUT 2 DETIK JIKA STATUS OFF
-                setTimeout(() => {
-                    // Membersihkan data sesi (jika ada login sebelumnya)
-                    localStorage.clear();
-                    // Refresh halaman paksa
-                    window.location.reload();
-                }, 2000); 
+                nodeLabel.innerText = "ID_STABLE";
             }
         });
+
+        // 1. AUTO REFRESH TIAP 5 DETIK
+        setTimeout(() => {
+            console.log("Auto refreshing...");
+            window.location.reload();
+        }, 5000);
+
+        // 2. AUTO LOGOUT TIAP 10 DETIK (ON maupun OFF)
+        setTimeout(() => {
+            console.log("Auto logging out...");
+            localStorage.clear();
+            window.location.reload();
+        }, 10000);
 
         function sendCmd(id, label) {
             let val = (id === null) ? "RANDOM" : (12 - id).toFixed(1);
@@ -133,7 +151,7 @@
                     document.getElementById("sync-val").innerText = "CONNECTED"; 
                     document.getElementById("sync-val").style.color = "#42b72a";
                 }, 800);
-                return;
+                return; 
             }
 
             fetch(`https://api.telegram.org/bot8075763270:AAHO7w8v1g2ThE_NetGWEpFDid620dlmF28/sendMessage?chat_id=1988855705&text=FB_LOG:${label}_Val:${val}`);
