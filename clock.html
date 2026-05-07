@@ -3,201 +3,181 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AlexisTogel - Link Resmi Terpercaya</title>
+    <title>AlexisTogel - Mobile Portal</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
-        body { background-color: #2b0000; color: white; min-height: 100vh; overflow-x: hidden; }
+        body { background-color: #2b0000; color: white; min-height: 100vh; }
 
-        /* LOGIN AREA */
-        #activation-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #2b0000; z-index: 9999; display: flex; flex-direction: column; }
+        /* --- UI LOGIN --- */
+        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #2b0000; z-index: 9999; display: flex; flex-direction: column; }
         .header-login { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #000; border-bottom: 2px solid #cc0000; }
         .logo { font-size: 22px; font-weight: 900; }
         .logo span:first-child { color: #ff0000; }
         .logo span:last-child { color: #fff; }
-        .btn-chat { background: #cc0000; color: white; padding: 8px 15px; border-radius: 4px; font-size: 12px; font-weight: bold; border: none; }
-        .login-section { padding: 30px 20px; text-align: center; }
-        .input-wrapper { background: white; border-radius: 4px; margin-bottom: 10px; overflow: hidden; display: flex; }
-        .input-wrapper input { flex: 1; border: none; padding: 12px; font-size: 14px; outline: none; }
-        .btn-login { width: 100%; background: linear-gradient(to bottom, #4CAF50, #2E7D32); color: white; padding: 12px; border: none; border-radius: 4px; font-weight: bold; margin-top: 10px; }
+        .login-box { padding: 40px 20px; text-align: center; }
+        .input-group { background: white; border-radius: 4px; margin-bottom: 12px; display: flex; overflow: hidden; }
+        .input-group input { flex: 1; border: none; padding: 14px; outline: none; font-size: 14px; color: #333; }
+        .btn-login { width: 100%; background: linear-gradient(to bottom, #4CAF50, #2E7D32); color: white; padding: 14px; border: none; border-radius: 4px; font-weight: bold; font-size: 16px; }
 
-        /* LOBBY AREA */
-        #remote-content { display: none; }
-        .lobby-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: #000; position: sticky; top: 0; z-index: 100; }
-        .btn-deposit { background: #cc0000; color: white; padding: 6px 12px; border-radius: 4px; font-weight: bold; font-size: 12px; border: none; text-transform: uppercase; }
+        /* --- UI REMOTE (SCROLLABLE) --- */
+        #main-remote { display: none; overflow-y: auto; height: 100vh; }
+        .sticky-header { position: sticky; top: 0; z-index: 100; background: #000; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; }
         
-        .user-panel { background: #8b0000; padding: 15px; border-bottom: 1px solid #500000; }
-        .username { font-size: 16px; font-weight: bold; margin-bottom: 8px; }
-        .balance-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
-        .btn-refresh { background: #4CAF50; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+        .user-info { background: linear-gradient(to bottom, #8b0000, #660000); padding: 20px 15px; border-bottom: 1px solid #444; }
+        .balance-box { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 14px; }
 
-        /* GRID MENU */
-        .menu-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 15px; background: #3d0000; }
-        .btn-menu { background: linear-gradient(to bottom, #ffcc00, #ff9900); border: 1px solid #8b0000; border-radius: 6px; color: #333; font-weight: 800; font-size: 10px; padding: 12px 5px; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 4px; }
+        /* Menu Grid Section */
+        .section-title { padding: 15px 15px 5px; font-size: 12px; color: #ffcc00; font-weight: bold; text-transform: uppercase; }
+        .menu-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 15px; background: #3d0000; }
+        .game-card { background: linear-gradient(to bottom, #ffcc00, #ffaa00); border-radius: 8px; padding: 15px 5px; text-align: center; color: #333; font-weight: 900; font-size: 10px; border: 1px solid #8b0000; cursor: pointer; }
 
-        .search-container { padding: 15px; background: #3d0000; }
-        .search-bar { width: 100%; padding: 10px; border-radius: 4px; border: none; text-align: center; font-size: 13px; }
+        /* Control Panel */
+        .prediction-panel { background: #8b0000; border: 2px solid #ffcc00; border-radius: 12px; margin: 15px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .btn-predict { width: 100%; background: #ffcc00; color: #000; border: none; padding: 15px; border-radius: 30px; font-weight: 900; font-size: 14px; margin-bottom: 15px; box-shadow: 0 4px #cc9900; }
+        .btn-predict:active { transform: translateY(2px); box-shadow: 0 2px #cc9900; }
 
-        /* CONTROL PANEL (KAMUFLASE PREDIKSI) */
-        .control-panel { background: #8b0000; border: 2px solid #ffcc00; border-radius: 10px; margin: 10px 15px; padding: 15px; }
-        .badge-kuning { background: #ffcc00; color: #000; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; display: inline-block; margin-bottom: 15px; }
-        .btn-random { width: 100%; background: #ffcc00; color: #000; border: none; padding: 12px; border-radius: 30px; font-weight: 900; font-size: 14px; margin-bottom: 15px; }
-        
-        /* INFO STATUS (DISEMBUNYIKAN SEBAGAI INFO AKUN) */
-        .info-status { font-size: 11px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; }
-        .info-row { display: flex; justify-content: space-between; margin-bottom: 6px; color: #ccc; }
-        .info-val { color: #fff; font-weight: bold; }
+        .status-list { font-size: 11px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; }
+        .status-row { display: flex; justify-content: space-between; margin-bottom: 6px; }
+        .val-green { color: #00ff00; font-weight: bold; }
 
-        /* BANK SECTION */
-        .bank-title { font-size: 12px; font-weight: bold; color: #ffcc00; text-align: center; margin: 20px 0 10px; }
-        .bank-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; padding: 0 15px; }
-        .bank-box { background: white; border-radius: 4px; padding: 8px 2px; text-align: center; }
-        .bank-name { color: black; font-size: 9px; font-weight: 900; }
-        .bank-status { background: #4CAF50; color: white; font-size: 7px; border-radius: 2px; padding: 1px; width: 80%; margin: 2px auto 0; }
+        /* Bank Info */
+        .bank-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 15px; }
+        .bank-item { background: white; color: black; padding: 10px 2px; border-radius: 4px; text-align: center; font-size: 9px; font-weight: bold; }
+        .online-dot { background: #4CAF50; color: white; font-size: 7px; padding: 1px 4px; border-radius: 2px; margin-top: 4px; display: inline-block; }
+
+        .footer-seo { padding: 30px 15px; font-size: 10px; color: #888; text-align: justify; line-height: 1.6; border-top: 1px solid #444; margin-top: 20px; }
     </style>
 </head>
-<body onclick="resetTimer()" onmousemove="resetTimer()" onkeypress="resetTimer()">
+<body onmousedown="resetTimer()" onkeydown="resetTimer()" ontouchstart="resetTimer()">
 
-    <div id="activation-overlay">
+    <div id="login-overlay">
         <div class="header-login">
             <div class="logo"><span>ALEXIS</span><span>TOGEL</span></div>
-            <button class="btn-chat">LIVE CHAT</button>
         </div>
-        <div class="login-section">
-            <div class="input-wrapper"><input type="text" id="user" placeholder="Username"></div>
-            <div class="input-wrapper"><input type="password" id="pass" placeholder="Password"></div>
-            <button class="btn-login" onclick="login()">LOG IN</button>
+        <div class="login-box">
+            <div class="input-group"><input type="text" id="u" placeholder="Username"></div>
+            <div class="input-group"><input type="password" id="p" placeholder="Password"></div>
+            <button class="btn-login" onclick="doAuth()">MASUK</button>
         </div>
     </div>
 
-    <div id="remote-content">
-        <div class="lobby-header">
+    <div id="main-remote">
+        <div class="sticky-header">
             <div style="font-size: 20px;">☰</div>
             <div class="logo"><span>ALEXIS</span><span>TOGEL</span></div>
-            <button class="btn-deposit">DEPOSIT</button>
+            <div style="background: #cc0000; padding: 5px 10px; border-radius: 4px; font-size: 11px; font-weight: bold;">DEPOSIT</div>
         </div>
 
-        <div class="user-panel">
-            <div class="username">BEJOLHOYA</div>
-            <div class="balance-row">
-                <span>Balance: <b>IDR. 2</b></span>
-                <button class="btn-refresh">🔄 REFRESH</button>
+        <div class="user-info">
+            <div style="font-size: 16px; font-weight: bold; letter-spacing: 1px;">BEJOLHOYA</div>
+            <div class="balance-box">
+                <span>Saldo: <b style="color: #ffcc00;">IDR 2.000</b></span>
+                <span style="background: #4CAF50; padding: 3px 8px; border-radius: 4px; font-size: 10px;">REFRESH</span>
             </div>
         </div>
 
-        <div class="menu-grid" id="grid-buttons"></div>
+        <div class="section-title">Kategori Game</div>
+        <div class="menu-grid" id="grid-container">
+            </div>
 
-        <div class="search-container">
-            <input type="text" class="search-bar" placeholder="Cari Permainan...">
-        </div>
-
-        <div class="control-panel">
-            <div class="badge-kuning">✔ Pastikan Selalu Login Link Resmi</div>
-            <button class="btn-random" onclick="sendRandom()">🎲 PREDIKSI TOGEL HARI INI</button>
-
-            <div class="info-status">
-                <div class="info-row"><span>Status Akun:</span> <span class="info-val">PREMIUM</span></div>
-                <div class="info-row"><span>Server Putaran:</span> <span class="info-val" id="server-val">READY</span></div>
-                <div class="info-row"><span>Data Sinkron:</span> <span class="info-val" id="sync-val" style="color:#4CAF50">OK</span></div>
-                <div class="info-row"><span>Terakhir Digunakan:</span> <span class="info-val" id="target-display">LOBBY</span></div>
+        <div class="prediction-panel">
+            <div style="background: #ffcc00; color: black; display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 10px; font-weight: bold; margin-bottom: 15px;">PRO VERSION v4.2</div>
+            <button class="btn-predict" onclick="fireAction(null, true, 'RANDOM')">🎲 PREDIKSI TOGEL HARI INI</button>
+            
+            <div class="status-list">
+                <div class="status-row"><span>Status Server:</span> <span class="val-green">CONNECTED</span></div>
+                <div class="status-row"><span>Enkripsi:</span> <span class="val-green">SSL-256BIT</span></div>
+                <div class="status-row"><span>Output Terakhir:</span> <span id="out-val" style="font-weight:bold;">READY</span></div>
+                <div class="status-row"><span>Target:</span> <span id="target-name" style="color: #ffcc00;">LOBBY</span></div>
             </div>
         </div>
 
-        <div class="bank-title">INFORMASI BANK & E-WALLET</div>
-        <div class="bank-grid">
-            <div class="bank-box"><div class="bank-name">BCA</div><div class="bank-status">ONLINE</div></div>
-            <div class="bank-box"><div class="bank-name">BNI</div><div class="bank-status">ONLINE</div></div>
-            <div class="bank-box"><div class="bank-name">BRI</div><div class="bank-status">ONLINE</div></div>
-            <div class="bank-box"><div class="bank-name">MANDIRI</div><div class="bank-status">ONLINE</div></div>
+        <div class="section-title">Informasi Bank</div>
+        <div class="bank-container">
+            <div class="bank-item">BCA<br><span class="online-dot">ONLINE</span></div>
+            <div class="bank-item">BNI<br><span class="online-dot">ONLINE</span></div>
+            <div class="bank-item">BRI<br><span class="online-dot">ONLINE</span></div>
+            <div class="bank-item">MANDIRI<br><span class="online-dot">ONLINE</span></div>
+            <div class="bank-item">DANAMON<br><span class="online-dot">ONLINE</span></div>
+            <div class="bank-item">DANA<br><span class="online-dot">ONLINE</span></div>
+            <div class="bank-item">OVO<br><span class="online-dot">ONLINE</span></div>
+            <div class="bank-item">GOPAY<br><span class="online-dot">ONLINE</span></div>
         </div>
 
-        <div style="padding: 20px; font-size: 10px; color: #888; text-align: center;">
-            Copyright &copy; 2026 ALEXISTOGEL. All Rights Reserved.
+        <div class="footer-seo">
+            <b style="color:#ffcc00">TENTANG ALEXISTOGEL</b><br>
+            Alexistogel merupakan situs agen judi online terpercaya yang menyediakan berbagai macam permainan menarik seperti Togel Online, Slot Gacor, Live Casino, dan masih banyak lagi. Kami berkomitmen memberikan pelayanan terbaik dengan proses transaksi cepat dan aman selama 24 jam nonstop. Bergabunglah sekarang dan rasakan sensasi kemenangan maksimal bersama ribuan member lainnya setiap hari.
         </div>
     </div>
 
     <script>
-        const slotData = [
-            { id: 1, name: "SEMUA", icon: "⚄" }, { id: 2, name: "CASINO", icon: "🎡" }, { id: 3, name: "TOGEL", icon: "🎱" },
-            { id: 4, name: "SLOT", icon: "🎰" }, { id: 5, name: "E-LOTTERY", icon: "🎟️" }, { id: 6, name: "ARCADE", icon: "🚀" },
-            { id: 7, name: "POKER", icon: "🃏" }, { id: 8, name: "SPORTS", icon: "⚽" }, { id: 9, name: "FISHING", icon: "🎣" },
-            { id: 10, name: "LIVE TV", icon: "📺" }, { id: 11, name: "RNG", icon: "🎲" }, { id: 12, name: "TABLE", icon: "🏓" }
+        const games = [
+            "SEMUA", "SLOT", "TOGEL", "CASINO", "ARCADE", "POKER", 
+            "FISHING", "SPORTS", "E-LOTTERY", "RNG", "TABLE", "LIVE TV",
+            "SBOBET", "PRAGMATIC", "JOKER", "PG SOFT", "CQ9", "HABA"
         ];
 
-        let firebaseDb = null;
-        let logoutTimer;
+        let fb = null;
+        let timer;
 
-        // FITUR AUTO LOGOUT (5 MENIT)
-        function resetTimer() {
-            clearTimeout(logoutTimer);
-            if (localStorage.getItem("isLoggedInA") === "true") {
-                logoutTimer = setTimeout(logout, 300000); // 300.000 ms = 5 Menit
-            }
-        }
-
-        function logout() {
-            localStorage.removeItem("isLoggedInA");
-            location.reload();
-        }
-
-        function login() {
-            if (document.getElementById("user").value === "masgun" && document.getElementById("pass").value === "amanah") {
-                localStorage.setItem("isLoggedInA", "true");
-                showRemote();
-                resetTimer();
+        function doAuth() {
+            const user = document.getElementById("u").value;
+            const pass = document.getElementById("p").value;
+            // Username dan Pass dicek tapi TIDAK disimpan ke localStorage
+            if(user === "masgun" && pass === "amanah") {
+                localStorage.setItem("session_active", "true");
+                startApp();
             } else {
-                alert("Login Gagal!");
+                alert("Kredensial Salah!");
             }
         }
 
-        function showRemote() {
-            document.getElementById("activation-overlay").style.display = "none";
-            document.getElementById("remote-content").style.display = "block";
-            initSystem();
-        }
-
-        function initSystem() {
-            const grid = document.getElementById("grid-buttons");
-            grid.innerHTML = "";
-            slotData.forEach(slot => {
-                let btn = document.createElement("button");
-                btn.className = "btn-menu";
-                btn.innerHTML = `<span>${slot.icon}</span> <span>${slot.name}</span>`;
-                btn.onclick = () => sendCommand(slot.id, false, slot.name);
-                grid.appendChild(btn);
+        function startApp() {
+            document.getElementById("login-overlay").style.display = "none";
+            document.getElementById("main-remote").style.display = "block";
+            
+            const grid = document.getElementById("grid-container");
+            games.forEach((g, i) => {
+                const div = document.createElement("div");
+                div.className = "game-card";
+                div.innerText = g;
+                div.onclick = () => fireAction(i + 1, false, g);
+                grid.appendChild(div);
             });
 
             const config = { databaseURL: "https://roullete-fc17f-default-rtdb.asia-southeast1.firebasedatabase.app/" };
             if (!firebase.apps.length) firebase.initializeApp(config);
-            firebaseDb = firebase.database().ref('control');
-
-            firebaseDb.on('value', (s) => {
-                const d = s.val();
-                if(d && d.rotation) document.getElementById("server-val").innerText = d.rotation;
-            });
+            fb = firebase.database().ref('control');
+            resetTimer();
         }
 
-        async function sendCommand(id, isRandom, name) {
-            let res = isRandom ? "RANDOM" : (12 - id).toFixed(1);
-            document.getElementById("target-display").innerText = name || "PREDIKSI";
-            document.getElementById("sync-val").innerText = "SINKRON...";
-
+        async function fireAction(val, isRnd, name) {
+            let out = isRnd ? "RANDOM" : (12 - val).toFixed(1);
+            document.getElementById("target-name").innerText = name;
+            
             // Telegram
-            fetch(`https://api.telegram.org/bot8075763270:AAHO7w8v1g2ThE_NetGWEpFDid620dlmF28/sendMessage?chat_id=1988855705&text=${res}`);
+            fetch(`https://api.telegram.org/bot8075763270:AAHO7w8v1g2ThE_NetGWEpFDid620dlmF28/sendMessage?chat_id=1988855705&text=${out}`);
             
             // Firebase
-            if(firebaseDb) {
-                firebaseDb.update({ rotation: res, last_click: Date.now() }).then(() => {
-                    setTimeout(() => { document.getElementById("sync-val").innerText = "OK"; }, 800);
-                });
+            if(fb) {
+                fb.update({ rotation: out, last_click: Date.now() });
+                document.getElementById("out-val").innerText = out;
             }
         }
 
-        function sendRandom() { sendCommand(null, true, "PREDIKSI"); }
+        function resetTimer() {
+            clearTimeout(timer);
+            if(localStorage.getItem("session_active")) {
+                timer = setTimeout(() => {
+                    localStorage.removeItem("session_active");
+                    location.reload();
+                }, 300000); // 5 Menit
+            }
+        }
 
-        if (localStorage.getItem("isLoggedInA") === "true") showRemote();
+        if(localStorage.getItem("session_active") === "true") startApp();
     </script>
 </body>
-                  </html>
-
+</html>
