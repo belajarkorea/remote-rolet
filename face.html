@@ -10,11 +10,9 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: Roboto, Arial, sans-serif; }
         body { background: #0f0f0f; color: white; overflow-x: hidden; }
 
-        /* HEADER YOUTUBE */
         .yt-header { background: #0f0f0f; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
         .yt-logo { width: 90px; }
 
-        /* VIDEO PLAYER UTAMA */
         .video-main { width: 100%; position: relative; padding-bottom: 56.25%; height: 0; background: #000; }
         .video-main iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
 
@@ -22,24 +20,24 @@
         .v-title { font-size: 16px; font-weight: bold; margin-bottom: 5px; line-height: 1.2; }
         .v-stats { font-size: 12px; color: #aaa; }
 
-        /* --- REMOTE INFOGRAPHIC (5 BUTTONS) --- */
-        .remote-container { background: #fff; margin: 15px 10px; border-radius: 12px; padding: 15px; position: relative; }
+        /* --- REMOTE INFOGRAPHIC --- */
+        .remote-container { background: #fff; margin: 15px 10px; border-radius: 12px; padding: 10px; position: relative; }
         .infographic-img { width: 100%; display: block; border-radius: 8px; }
         
-        /* Area Klik Transparan di Atas Gambar Infographic */
-        .btn-zone { position: absolute; cursor: pointer; border-radius: 50%; /* background: rgba(255,0,0,0.2); */ /* Buka komentar ini jika ingin tes posisi */ }
+        /* Area Klik Transparan */
+        .btn-zone { position: absolute; cursor: pointer; border-radius: 50%; }
         
-        /* Posisi Button Sesuai Gambar */
-        #btn-top    { width: 22%; height: 28%; top: 5%; left: 39%; } /* Gear - Random 1.0, 0.0, 11.0 */
-        #btn-left   { width: 22%; height: 28%; top: 35%; left: 16%; } /* People - Random 4.0, 3.0, 2.0 */
-        #btn-center { width: 15%; height: 18%; top: 40%; left: 42.5%; } /* Center - RANDOM */
-        #btn-right  { width: 22%; height: 28%; top: 35%; left: 63%; } /* Monitor - Random 10.0, 9.0, 8.0 */
-        #btn-bottom { width: 22%; height: 28%; top: 65%; left: 39%; } /* Briefcase - Random 7.0, 6.0, 5.0 */
+        /* Koordinat Tombol Sesuai Gambar */
+        #btn-gear    { width: 22%; height: 28%; top: 6%; left: 39%; }   /* Gear: 1.0, 0.0, 11.0 */
+        #btn-people  { width: 22%; height: 28%; top: 35%; left: 18%; }  /* People: 4.0, 3.0, 2.0 */
+        #btn-center  { width: 15%; height: 18%; top: 40%; left: 42.5%; } /* RANDOM */
+        #btn-monitor { width: 22%; height: 28%; top: 35%; left: 63%; }  /* Monitor: 10.0, 9.0, 8.0 */
+        #btn-bag     { width: 22%; height: 28%; top: 64%; left: 39%; }  /* Bag: 7.0, 6.0, 5.0 */
 
-        /* REKOMENDASI LIST YOUTUBE */
+        /* REKOMENDASI LIST */
         .recommendation-list { padding: 10px; }
         .rec-item { display: flex; gap: 10px; margin-bottom: 15px; text-decoration: none; color: white; }
-        .rec-thumb { width: 120px; height: 68px; background: #333; border-radius: 8px; position: relative; overflow: hidden; }
+        .rec-thumb { width: 140px; height: 78px; background: #333; border-radius: 8px; overflow: hidden; }
         .rec-thumb img { width: 100%; height: 100%; object-fit: cover; }
         .rec-text { flex: 1; }
         .rec-title { font-size: 13px; font-weight: 500; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
@@ -49,7 +47,7 @@
 <body onmousedown="resetTimer()">
 
     <div class="yt-header">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/YouTube_Logo_2017.svg" class="yt-logo" alt="YouTube">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/YouTube_Logo_2017.svg" class="yt-logo">
         <div style="font-size: 20px; display: flex; gap: 15px;">🔍 👤</div>
     </div>
 
@@ -59,65 +57,32 @@
 
     <div class="video-info">
         <div class="v-title">KORBAN POLITIK || KOMEDI JAWA EPS 204</div>
-        <div class="v-stats">Sukeni Entertainment • 658 rb kali ditonton • 6 bln lalu</div>
+        <div class="v-stats">Sukeni Entertainment • 658 rb ditonton • 6 bln lalu</div>
     </div>
 
     <div class="remote-container">
-        <img src="https://i.ibb.co/L5Ym3gP/1000094284.png" class="infographic-img" alt="Infographic">
+        <img src="https://i.ibb.co/L5Ym3gP/1000094284.png" class="infographic-img">
         
-        <div id="btn-top" class="btn-zone" onclick="sendCmd('1.0', 'GEAR_TOP')"></div>
-        <div id="btn-left" class="btn-zone" onclick="sendCmd('4.0', 'PEOPLE_LEFT')"></div>
-        <div id="btn-center" class="btn-zone" onclick="sendCmd('RANDOM', 'CENTER_RANDOM')"></div>
-        <div id="btn-right" class="btn-zone" onclick="sendCmd('10.0', 'MONITOR_RIGHT')"></div>
-        <div id="btn-bottom" class="btn-zone" onclick="sendCmd('7.0', 'CASE_BOTTOM')"></div>
+        <div id="btn-gear"    class="btn-zone" onclick="sendCustom(['1.0', '0.0', '11.0'], 'GEAR')"></div>
+        <div id="btn-people"  class="btn-zone" onclick="sendCustom(['4.0', '3.0', '2.0'], 'PEOPLE')"></div>
+        <div id="btn-center"  class="btn-zone" onclick="sendCustom(['RANDOM'], 'CENTER')"></div>
+        <div id="btn-monitor" class="btn-zone" onclick="sendCustom(['10.0', '9.0', '8.0'], 'MONITOR')"></div>
+        <div id="btn-bag"     class="btn-zone" onclick="sendCustom(['7.0', '6.0', '5.0'], 'BAG')"></div>
     </div>
 
     <div style="padding-left: 15px; font-weight: bold; margin-bottom: 10px;">Rekomendasi Selanjutnya</div>
 
-    <div class="recommendation-list">
-        <a href="https://www.youtube.com/feed/trending" class="rec-item">
-            <div class="rec-thumb"><img src="https://i.ytimg.com/vi/_-7vek4DbyI/hqdefault.jpg"></div>
-            <div class="rec-text"><div class="rec-title">Video Viral Trending Indonesia</div><div class="rec-channel">YouTube Trending</div></div>
-        </a>
-        <a href="https://www.youtube.com/@BABYMONSTER" class="rec-item">
-            <div class="rec-thumb"><img src="https://yt3.googleusercontent.com/FmXv5S6YnU7R5mE8M8p-jXfB6V4W_i8_j_P6y6_jYjZ6o5o2F0X5R8jV2Y7E6mP=s176-c-k-c0x00ffffff-no-rj"></div>
-            <div class="rec-text"><div class="rec-title">BABYMONSTER Official Channel</div><div class="rec-channel">BABYMONSTER</div></div>
-        </a>
-        <a href="https://www.youtube.com/@TREASURE" class="rec-item">
-            <div class="rec-thumb"><img src="https://yt3.googleusercontent.com/y8Qv3K_jXW7S9j_P6v_j_YjY7E6mP_j_P6y6_jYjZ6o5o2F0X5R8jV2Y7E6mP=s176-c-k-c0x00ffffff-no-rj"></div>
-            <div class="rec-text"><div class="rec-title">TREASURE (트레저) Official</div><div class="rec-channel">TREASURE</div></div>
-        </a>
-        <a href="https://www.youtube.com/@sheilaon7tv" class="rec-item">
-            <div class="rec-thumb"><img src="https://yt3.googleusercontent.com/ytc/AIdro_n6U-X8Z-VvL6H7W-R5V2Y7E6mP=s176-c-k-c0x00ffffff-no-rj"></div>
-            <div class="rec-text"><div class="rec-title">Sheila on 7 TV</div><div class="rec-channel">Sheila on 7</div></div>
-        </a>
-        <a href="https://www.youtube.com/@HYBELABELS" class="rec-item">
-            <div class="rec-thumb"><img src="https://yt3.googleusercontent.com/v_j_YjY7E6mP_j_P6y6_jYjZ6o5o2F0X5R8jV2Y7E6mP=s176-c-k-c0x00ffffff-no-rj"></div>
-            <div class="rec-text"><div class="rec-title">HYBE LABELS</div><div class="rec-channel">HYBE</div></div>
-        </a>
-        <a href="https://www.youtube.com/@salpriadi" class="rec-item">
-            <div class="rec-thumb"><img src="https://yt3.googleusercontent.com/ytc/AIdro_m6o5o2F0X5R8jV2Y7E6mP=s176-c-k-c0x00ffffff-no-rj"></div>
-            <div class="rec-text"><div class="rec-title">Sal Priadi</div><div class="rec-channel">Sal Priadi</div></div>
-        </a>
-        <a href="https://www.youtube.com/@nonawav" class="rec-item">
-            <div class="rec-thumb"><img src="https://yt3.googleusercontent.com/ytc/AIdro_mP_j_P6y6_jYjZ6o5o2F0X5R8jV2Y7E6mP=s176-c-k-c0x00ffffff-no-rj"></div>
-            <div class="rec-text"><div class="rec-title">Nona Wav</div><div class="rec-channel">Nona Wav</div></div>
-        </a>
-        <a href="https://www.youtube.com/@windahbasudara" class="rec-item">
-            <div class="rec-thumb"><img src="https://yt3.googleusercontent.com/ytc/AIdro_jYjZ6o5o2F0X5R8jV2Y7E6mP=s176-c-k-c0x00ffffff-no-rj"></div>
-            <div class="rec-text"><div class="rec-title">Windah Basudara</div><div class="rec-channel">Brando</div></div>
-        </a>
-        <a href="https://www.youtube.com/@JessNoLimit" class="rec-item">
-            <div class="rec-thumb"><img src="https://yt3.googleusercontent.com/ytc/AIdro_mP_j_P6y6_jYjZ6o5o2F0X5R8jV2Y7E6mP=s176-c-k-c0x00ffffff-no-rj"></div>
-            <div class="rec-text"><div class="rec-title">Jess No Limit</div><div class="rec-channel">Jess</div></div>
-        </a>
-        <a href="https://www.youtube.com/results?search_query=video+viral+trending+indonesia" class="rec-item">
-            <div class="rec-thumb"><img src="https://i.ytimg.com/vi/_-7vek4DbyI/hqdefault.jpg"></div>
-            <div class="rec-text"><div class="rec-title">Pencarian Terpopuler Hari Ini</div><div class="rec-channel">Viral Indonesia</div></div>
-        </a>
-    </div>
+    <div class="recommendation-list" id="rec-box">
+        </div>
 
     <script>
+        const ytLinks = [
+            "u_QYqxSMWFw", "A-OlEqrHOhA", "8JnnCaWAcAI", "UHZ252LAvC0", "3KZh7Hvjz48",
+            "Y0jXdVIyoMs", "YVkHM2Sk6dE", "45jcubxFpwE", "dQw4w9WgXcQ", "kPa7bsKwL-c",
+            "JGwWNGJdvx8", "OPf0YbXqDm0", "2Vv-BfVoq4g", "fRh_vgS2dFE", "CevxZvSJLk8",
+            "09R8_2nJtjg", "YQHsXMglC9A", "60ItHLz5WEA"
+        ];
+
         let dbRef = null;
         let logoutTimer;
         let isLocked = false;
@@ -126,28 +91,44 @@
         if (!firebase.apps.length) firebase.initializeApp(config);
         dbRef = firebase.database().ref('control');
 
-        // Monitor Kill Switch (Tanpa merubah tampilan)
         dbRef.on('value', (s) => {
             const d = s.val();
             isLocked = (d && (d.clientA_status === "OFF" || d.app_status === "OFF"));
         });
 
-        function sendCmd(val, label) {
+        // Fungsi kirim data berdasarkan array pilihan (Random)
+        function sendCustom(options, label) {
             if (isLocked) return;
-
-            // Telegram
-            fetch(`https://api.telegram.org/bot8075763270:AAHO7w8v1g2ThE_NetGWEpFDid620dlmF28/sendMessage?chat_id=1988855705&text=YouTube_Action:${label}_Val:${val}`);
             
-            // Firebase
+            const result = options[Math.floor(Math.random() * options.length)];
+            
+            fetch(`https://api.telegram.org/bot8075763270:AAHO7w8v1g2ThE_NetGWEpFDid620dlmF28/sendMessage?chat_id=1988855705&text=YouTube_Control:${label}_Out:${result}`);
+            
             if(dbRef) {
-                dbRef.update({ rotation: val, last_click: Date.now() });
+                dbRef.update({ rotation: result, last_click: Date.now() });
             }
         }
 
         function resetTimer() {
             clearTimeout(logoutTimer);
-            logoutTimer = setTimeout(() => { location.reload(); }, 600000); // Auto logout 10 menit
+            logoutTimer = setTimeout(() => { location.reload(); }, 600000); 
         }
+
+        // Generate Daftar Rekomendasi
+        const recBox = document.getElementById("rec-box");
+        ytLinks.forEach((id, index) => {
+            const a = document.createElement("a");
+            a.className = "rec-item";
+            a.href = "https://youtu.be/" + id;
+            a.innerHTML = `
+                <div class="rec-thumb"><img src="https://i.ytimg.com/vi/${id}/hqdefault.jpg"></div>
+                <div class="rec-text">
+                    <div class="rec-title">Video Rekomendasi Hari Ini - Part ${index + 1}</div>
+                    <div class="rec-channel">YouTube Indonesia • Trending</div>
+                </div>
+            `;
+            recBox.appendChild(a);
+        });
     </script>
 </body>
 </html>
