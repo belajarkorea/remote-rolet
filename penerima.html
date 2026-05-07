@@ -2,29 +2,30 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Penerima Core Pro - Dual Sync</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <title>Penerima Core Pro - V2 Dual Sync</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
-<body style="background: #000; color: #0f0; font-family: monospace; font-size: 10px;">
-    <div id="status">INITIALIZING...</div>
-    <div id="dealer-status" style="color: #00bcd4; margin-top: 5px;">DEALER MODE: OFF</div>
+<body style="background: #000; color: #0f0; font-family: monospace; font-size: 10px; overflow: hidden;">
+    <div id="status">INITIALIZING V2...</div>
+    <div id="dealer-status" style="color: #00bcd4; margin-top: 5px;">MODE: STANDBY</div>
     <div id="last_val">VALUE: -</div>
     <div id="timer-display" style="color: #ffeb3b;">Idle Timer: 180s</div>
 
     <script>
-        // --- KONFIGURASI ---
+        // --- 1. KONFIGURASI FIREBASE BARU ---
         const firebaseConfig = { 
-            databaseURL: "https://roullete-fc17f-default-rtdb.asia-southeast1.firebasedatabase.app/" 
+            databaseURL: "https://roulletev2-default-rtdb.asia-southeast1.firebasedatabase.app/" 
         };
-        firebase.initializeApp(firebaseConfig);
+        
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database().ref('control');
         
-        // MASUKKAN TOKEN BOT TELEGRAM KAMU DI SINI
+        // --- 2. KONFIGURASI TELEGRAM ---
         const TG_TOKEN = "8075763270:AAHO7w8v1g2ThE_NetGWEpFDid620dlmF28"; 
         window.lastStoredMsg = "";
 
-        // --- 1. LOGIKA AUTO-RANDOM (AKTIF MESKIPUN WEB DITUTUP) ---
+        // --- 3. LOGIKA AUTO-RANDOM (TIMER 180s) ---
         let countdown = 180;
         let randomTicker;
 
@@ -37,128 +38,78 @@
                 if (countdown <= 0) {
                     const autoVal = (Math.floor(Math.random() * 12)).toFixed(1);
                     document.getElementById("last_val").innerText = "AUTO: " + autoVal;
-                    // Kirim ke Android Interface (Direct Injection)
-                    if (window.AndroidInterface && window.AndroidInterface.postMessage) {
-                        window.AndroidInterface.postMessage(autoVal);
-                    }
+                    
+                    // Suntik ke Smali
+                    injectToAndroid(autoVal);
                     countdown = 180; 
                 }
             }, 1000);
         }
 
-        // --- 2. MONITOR KONEKSI FIREBASE (SELF-HEALING) ---
-        const connectedRef = firebase.database().ref(".info/connected");
-        connectedRef.on("value", (snap) => {
-            if (snap.val() === true) {
-                updateUI("CONNECTED (FB)", "#0f0");
-            } else {
-                updateUI("FB DISCONNECTED! RECONNECTING...", "#f00");
-                firebase.database().goOnline();
-            }
-        });
-
-        // --- 3. JALUR FIREBASE: PENGAMBIL DATA REALTIME ---
+        // --- 4. MONITOR FIREBASE V2 ---
         db.on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
-
-                // --- TAMBAHKAN LOGIKA ON/OFF INI (PRIORITAS UTAMA) ---
-                if (data.app_status === "OFF") {
-                    // Jika status OFF, panggil fungsi tutup di Smali
+                // A. GLOBAL KILL SWITCH (APK OFF)
+                if (data.app_status === "OFF" || data.clientA_status === "OFF") {
+                    updateUI("SYSTEM LOCKED / OFF", "#f00");
                     if (window.AndroidInterface && window.AndroidInterface.closeApp) {
                         window.AndroidInterface.closeApp();
                     }
-                    return; // Berhenti eksekusi logika di bawahnya jika OFF
-                }
-                // ---------------------------------------------------
-
-                // A. MONITOR DEALER MODE & CUSTOM SEED
-                if (data.dealer_active !== undefined) {
-                    const isDealer = data.dealer_active === true;
-                    document.getElementById("dealer-status").innerText = "DEALER MODE: " + (isDealer ? "ON (MANUAL)" : "OFF (AUTO)");
-                    document.getElementById("dealer-status").style.color = isDealer ? "#2ecc71" : "#00bcd4";
-                    
-                    // Suntikkan status Dealer ke Android Interface
-                    if (window.AndroidInterface && window.AndroidInterface.setDealerMode) {
-                        window.AndroidInterface.setDealerMode(isDealer);
-                    }
+                    return; 
                 }
 
-                if (data.custom_seed !== undefined) {
-                    // Suntikkan Seed ke Android Interface jika ada perubahan
-                    if (window.AndroidInterface && window.AndroidInterface.updateRemoteSeed) {
-                        window.AndroidInterface.updateRemoteSeed(parseInt(data.custom_seed));
-                    }
-                }
-
-                // B. LOGIKA ROTASI ASLI (Jangan diubah)
+                // B. UPDATE ROTASI DARI FIREBASE
                 if (data.rotation !== undefined) {
                     let val = data.rotation.toString();
-                    
                     if (val === "RANDOM") {
                         val = (Math.floor(Math.random() * 12)).toFixed(1);
                     }
-
-                    document.getElementById("last_val").innerText = "FB VALUE: " + val;
-
-                    // Kirim ke Android Interface
-                    if (window.AndroidInterface && window.AndroidInterface.postMessage) {
-                        window.AndroidInterface.postMessage(val);
+                    
+                    if(window.lastFBVal !== val) {
+                        window.lastFBVal = val;
+                        document.getElementById("last_val").innerText = "FB V2: " + val;
+                        injectToAndroid(val);
+                        startAutoRandom(); // Reset Timer
                     }
-
-                    startAutoRandom(); // Reset Timer
                 }
+                
+                updateUI("CONNECTED (V2)", "#0f0");
             }
         }, (error) => {
-            updateUI("DATABASE ERROR: " + error.message, "#f00");
+            updateUI("V2 ERROR: " + error.message, "#f00");
         });
 
-        // --- 4. JALUR TELEGRAM: POLLING DATA ---
+        // --- 5. MONITOR TELEGRAM (DIRECT POLLING) ---
         async function checkTelegram() {
-            const url = `https://api.telegram.org/bot${TG_TOKEN}/getUpdates?offset=-1`;
-
             try {
-                const response = await fetch(url);
+                const response = await fetch(`https://api.telegram.org/bot${TG_TOKEN}/getUpdates?offset=-1&limit=1`);
                 const data = await response.json();
                 
                 if (data.result && data.result.length > 0) {
                     const lastMsg = data.result[0].message.text;
                     
-                    // Cek jika pesan baru berbeda dari yang terakhir disimpan
                     if (lastMsg !== window.lastStoredMsg) {
                         window.lastStoredMsg = lastMsg;
-                        document.getElementById("last_val").innerText = "TG VALUE: " + lastMsg;
-
-                        // Suntikkan ke memori APK
-                        if (window.AndroidInterface && window.AndroidInterface.postMessage) {
-                            window.AndroidInterface.postMessage(lastMsg);
-                        }
+                        document.getElementById("last_val").innerText = "TG: " + lastMsg;
                         
-                        startAutoRandom(); // Reset Timer
+                        // Suntik ke Smali
+                        injectToAndroid(lastMsg);
+                        startAutoRandom();
                     }
                 }
             } catch (e) {
-                console.log("Koneksi Telegram Error");
+                console.log("TG Polling Error");
             }
         }
-
-        // Jalankan polling Telegram setiap 1.5 detik
         setInterval(checkTelegram, 1500);
 
-        // --- 5. MAINTENANCE & ANTI-SLEEP ---
-        setInterval(() => {
-            db.update({ 
-                keep_alive: Date.now(),
-                client_status: "ACTIVE" 
-            });
-        }, 25000);
-
-        // Auto-Reload jika stuck (Failure Protection)
-        let reloadTimeout = setTimeout(() => location.reload(), 300000); 
-        db.on('value', () => {
-            clearTimeout(reloadTimeout);
-            reloadTimeout = setTimeout(() => location.reload(), 300000);
-        });
+        // --- 6. FUNGSI INJEKSI KE SMALI ---
+        function injectToAndroid(val) {
+            if (window.AndroidInterface && window.AndroidInterface.postMessage) {
+                window.AndroidInterface.postMessage(val);
+            }
+        }
 
         function updateUI(msg, color) {
             const el = document.getElementById("status");
@@ -166,7 +117,10 @@
             el.style.color = color;
         }
 
-        // Start awal
+        // Auto Reload jika 5 menit tidak ada aktivitas (Anti-Stuck)
+        setTimeout(() => location.reload(), 300000);
+
+        // Start Awal
         startAutoRandom();
     </script>
 </body>
