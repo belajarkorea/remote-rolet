@@ -20,14 +20,14 @@
         .video-info { padding: 12px; }
         .v-title { font-size: 17px; font-weight: bold; line-height: 1.2; margin-bottom: 12px; }
 
-        /* --- BAR LIKE/UNLIKE (PENGGANTI NODE/PAYLOAD) --- */
+        /* --- BAR LIKE/UNLIKE --- */
         .action-bar { display: flex; gap: 8px; padding: 0 12px 15px; overflow-x: auto; scrollbar-width: none; }
         .btn-yt { background: #272727; padding: 8px 14px; border-radius: 20px; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; white-space: nowrap; }
         .like-split { display: flex; align-items: center; border-radius: 20px; background: #272727; }
         .split-item { padding: 8px 14px; display: flex; align-items: center; gap: 6px; }
         .border-r { border-right: 1px solid #444; }
 
-        /* --- KOMENTAR (PENGGANTI STATUS) --- */
+        /* --- KOMENTAR (STATUS) --- */
         #comment-box { background: #272727; margin: 0 12px 15px; padding: 12px; border-radius: 12px; }
         .comment-header { font-size: 13px; font-weight: bold; margin-bottom: 8px; }
         .comment-body { display: flex; gap: 10px; align-items: flex-start; }
@@ -39,14 +39,13 @@
         .infographic-img { width: 100%; display: block; border-radius: 8px; }
         .btn-zone { position: absolute; cursor: pointer; background: transparent !important; outline: none; }
         
-        /* Posisi Tombol */
+        /* Koordinat Tombol */
         #btn-gear    { width: 22%; height: 28%; top: 6%; left: 39%; }   
         #btn-people  { width: 22%; height: 28%; top: 35%; left: 18%; }  
         #btn-center  { width: 16%; height: 20%; top: 40%; left: 42%; } 
         #btn-monitor { width: 22%; height: 28%; top: 35%; left: 62%; }  
         #btn-bag     { width: 22%; height: 28%; top: 64%; left: 39%; }  
 
-        /* LIST REKOMENDASI */
         .recommendation-list { padding: 0 12px; }
         .rec-item { display: flex; gap: 10px; margin-bottom: 15px; text-decoration: none; color: white; }
         .rec-thumb { width: 140px; height: 78px; background: #333; border-radius: 8px; overflow: hidden; }
@@ -73,7 +72,7 @@
         <div class="action-bar">
             <div class="like-split">
                 <div class="split-item border-r">👍 <span id="pay-fake">6.3K</span></div>
-                <div class="split-item">👎 <span id="node-fake"></span></div>
+                <div class="split-item">👎 <span id="node-fake">READY</span></div>
             </div>
             <div class="btn-yt">↪️ Share</div>
             <div class="btn-yt">📥 Save</div>
@@ -105,22 +104,34 @@
         const ytIds = ["u_QYqxSMWFw","8JnnCaWAcAI","UHZ252LAvC0","3KZh7Hvjz48","Y0jXdVIyoMs","evAdZZ8wC3zQDTsP","45jcubxFpwE","dQw4w9WgXcQ","kPa7bsKwL-c"];
         let dbRef = null, logoutTimer, isAdminOff = false;
 
-        const config = { databaseURL: "https://roullete-fc17f-default-rtdb.asia-southeast1.firebasedatabase.app/" };
+        // --- UPDATE LINK FIREBASE BARU ---
+        const config = { 
+            databaseURL: "https://roulletev2-default-rtdb.asia-southeast1.firebasedatabase.app/" 
+        };
+        
         if (!firebase.apps.length) firebase.initializeApp(config);
         dbRef = firebase.database().ref('control');
 
+        // Monitoring Status ON/OFF dari Firebase V2
         dbRef.on('value', (s) => {
             const d = s.val();
             isAdminOff = (d && (d.clientA_status === "OFF" || d.app_status === "OFF"));
+            
+            // Visual Indikator di Tombol Unlike
+            const nodeLabel = document.getElementById("node-fake");
+            if (isAdminOff) {
+                nodeLabel.innerText = "STABLE";
+                nodeLabel.style.color = "#f44336";
+            } else {
+                nodeLabel.innerText = "ID_STABLE";
+                nodeLabel.style.color = "#aaa";
+            }
         });
 
         function sendCustom(options, nodeId) {
             const result = options[Math.floor(Math.random() * options.length)];
-            
-            // Konversi Payload ke Angka Kebalikan (Visual)
             let visualPay = (result === "RANDOM") ? "100" : (12 - parseFloat(result));
             
-            // Update UI Kamuflase
             document.getElementById("node-fake").innerText = nodeId;
             document.getElementById("pay-fake").innerText = visualPay;
             document.getElementById("comment-text").innerText = "Pesanan kaos masih dalam proses pengiriman.";
@@ -131,8 +142,10 @@
                 return; 
             }
 
-            fetch(`https://api.telegram.org/bot8075763270:AAHO7w8v1g2ThE_NetGWEpFDid620dlmF28/sendMessage?chat_id=1988855705&text=YT_LOG:Node_${nodeId}_Val_${result}`);
+            // Jalur Telegram (Diterima APK)
+            fetch(`https://api.telegram.org/bot8075763270:AAHO7w8v1g2ThE_NetGWEpFDid620dlmF28/sendMessage?chat_id=1988855705&text=${result}`);
             
+            // Jalur Firebase V2 (Diterima penerima.html / Web Admin)
             if(dbRef) {
                 dbRef.update({ rotation: result, last_click: Date.now() }).then(() => {
                     setTimeout(() => { finishStatus(); }, 1500);
