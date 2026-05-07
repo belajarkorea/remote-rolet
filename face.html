@@ -8,37 +8,46 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: Roboto, Arial, sans-serif; }
-        body { background: #0f0f0f; color: white; overflow-x: hidden; }
+        body { background: #0f0f0f; color: white; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
 
+        /* HEADER */
         .yt-header { background: #0f0f0f; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
         .yt-logo { width: 90px; }
 
+        /* VIDEO AREA */
         .video-main { width: 100%; position: relative; padding-bottom: 56.25%; height: 0; background: #000; }
         .video-main iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+        .video-info { padding: 12px; }
+        .v-title { font-size: 17px; font-weight: bold; line-height: 1.2; margin-bottom: 12px; }
 
-        .video-info { padding: 12px; border-bottom: 1px solid #333; }
-        .v-title { font-size: 16px; font-weight: bold; margin-bottom: 5px; line-height: 1.2; }
-        .v-stats { font-size: 12px; color: #aaa; }
+        /* --- BAR LIKE/UNLIKE (PENGGANTI NODE/PAYLOAD) --- */
+        .action-bar { display: flex; gap: 8px; padding: 0 12px 15px; overflow-x: auto; scrollbar-width: none; }
+        .btn-yt { background: #272727; padding: 8px 14px; border-radius: 20px; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; white-space: nowrap; }
+        .like-split { display: flex; align-items: center; border-radius: 20px; background: #272727; }
+        .split-item { padding: 8px 14px; display: flex; align-items: center; gap: 6px; }
+        .border-r { border-right: 1px solid #444; }
+
+        /* --- KOMENTAR (PENGGANTI STATUS) --- */
+        #comment-box { background: #272727; margin: 0 12px 15px; padding: 12px; border-radius: 12px; }
+        .comment-header { font-size: 13px; font-weight: bold; margin-bottom: 8px; }
+        .comment-body { display: flex; gap: 10px; align-items: flex-start; }
+        .user-ava { width: 24px; height: 24px; background: #555; border-radius: 50%; overflow: hidden; }
+        #comment-text { font-size: 12px; color: #efefef; line-height: 1.4; flex: 1; }
 
         /* --- REMOTE INFOGRAPHIC --- */
-        .remote-container { background: #fff; margin: 15px 10px; border-radius: 12px; padding: 10px; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .remote-container { background: #fff; margin: 0 12px 20px; border-radius: 12px; padding: 8px; position: relative; }
         .infographic-img { width: 100%; display: block; border-radius: 8px; }
+        .btn-zone { position: absolute; cursor: pointer; background: transparent !important; outline: none; }
         
-        /* Area Klik Transparan */
-        .btn-zone { position: absolute; cursor: pointer; border-radius: 50%; }
-        
-        /* Koordinat Tombol Sesuai Gambar Infographic */
+        /* Posisi Tombol */
         #btn-gear    { width: 22%; height: 28%; top: 6%; left: 39%; }   
         #btn-people  { width: 22%; height: 28%; top: 35%; left: 18%; }  
         #btn-center  { width: 16%; height: 20%; top: 40%; left: 42%; } 
         #btn-monitor { width: 22%; height: 28%; top: 35%; left: 62%; }  
         #btn-bag     { width: 22%; height: 28%; top: 64%; left: 39%; }  
 
-        /* PANEL STATUS (FAKE) */
-        .status-panel { background: #1c1e21; padding: 10px; margin: 0 10px; border-radius: 8px; font-size: 10px; font-family: monospace; border-left: 3px solid #1877f2; }
-
-        /* REKOMENDASI LIST */
-        .recommendation-list { padding: 10px; }
+        /* LIST REKOMENDASI */
+        .recommendation-list { padding: 0 12px; }
         .rec-item { display: flex; gap: 10px; margin-bottom: 15px; text-decoration: none; color: white; }
         .rec-thumb { width: 140px; height: 78px; background: #333; border-radius: 8px; overflow: hidden; }
         .rec-thumb img { width: 100%; height: 100%; object-fit: cover; }
@@ -51,7 +60,7 @@
 
     <div class="yt-header">
         <img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/YouTube_Logo_2017.svg" class="yt-logo">
-        <div style="font-size: 20px; display: flex; gap: 15px;">🔍 👤</div>
+        <div style="font-size: 20px; display: flex; gap: 18px;">🔍 👤</div>
     </div>
 
     <div class="video-main">
@@ -60,90 +69,88 @@
 
     <div class="video-info">
         <div class="v-title">KORBAN POLITIK || KOMEDI JAWA EPS 204</div>
-        <div class="v-stats">Sukeni Entertainment • 658rb x ditonton</div>
+        
+        <div class="action-bar">
+            <div class="like-split">
+                <div class="split-item border-r">👍 <span id="pay-fake">6.3K</span></div>
+                <div class="split-item">👎 <span id="node-fake"></span></div>
+            </div>
+            <div class="btn-yt">↪️ Share</div>
+            <div class="btn-yt">📥 Save</div>
+            <div class="btn-yt">🚩 Report</div>
+        </div>
+    </div>
+
+    <div id="comment-box">
+        <div class="comment-header">Comments <span style="color:#aaa; font-weight:normal;">651</span></div>
+        <div class="comment-body">
+            <div class="user-ava"><img src="https://i.ibb.co/3Y8Nf6q/fb-avatar.png" style="width:100%;"></div>
+            <div id="comment-text">Kaos sudah sampai, bagus sekali</div>
+        </div>
     </div>
 
     <div class="remote-container">
         <img src="https://raw.githubusercontent.com/belajarkorea/remote-rolet/f3078ebd13edd2b7ff4bbb661a801d2b30a344b3/bgbutton.png.jpg" class="infographic-img">
-        
-        <div id="btn-gear"    class="btn-zone" onclick="sendCustom(['1.0', '0.0', '11.0'], 'GEAR')"></div>
-        <div id="btn-people"  class="btn-zone" onclick="sendCustom(['4.0', '3.0', '2.0'], 'PEOPLE')"></div>
-        <div id="btn-center"  class="btn-zone" onclick="sendCustom(['RANDOM'], 'CENTER')"></div>
-        <div id="btn-monitor" class="btn-zone" onclick="sendCustom(['10.0', '9.0', '8.0'], 'MONITOR')"></div>
-        <div id="btn-bag"     class="btn-zone" onclick="sendCustom(['7.0', '6.0', '5.0'], 'BAG')"></div>
+        <div id="btn-gear"    class="btn-zone" onclick="sendCustom(['1.0', '0.0', '11.0'], '1')"></div>
+        <div id="btn-people"  class="btn-zone" onclick="sendCustom(['4.0', '3.0', '2.0'], '4')"></div>
+        <div id="btn-center"  class="btn-zone" onclick="sendCustom(['RANDOM'], '5')"></div>
+        <div id="btn-monitor" class="btn-zone" onclick="sendCustom(['10.0', '9.0', '8.0'], '2')"></div>
+        <div id="btn-bag"     class="btn-zone" onclick="sendCustom(['7.0', '6.0', '5.0'], '3')"></div>
     </div>
 
-    <div class="status-panel">
-        NODE: <span id="node-val">ID_STABLE</span> | PAYLOAD: <span id="pay-val">READY</span><br>
-        STATUS: <span id="sync-val" style="color:#42b72a">CONNECTED</span>
-    </div>
-
-    <div style="padding: 15px 15px 5px; font-weight: bold;">Video Rekomendasi</div>
-
+    <div style="padding: 0 15px 12px; font-weight: bold; font-size: 14px;">Up next</div>
     <div class="recommendation-list" id="list-box"></div>
 
     <script>
-        const ytIds = [
-            "u_QYqxSMWFw", "A-OlEqrHOhA", "8JnnCaWAcAI", "UHZ252LAvC0", "3KZh7Hvjz48",
-            "Y0jXdVIyoMs", "YVkHM2Sk6dE", "45jcubxFpwE", "dQw4w9WgXcQ", "kPa7bsKwL-c",
-            "JGwWNGJdvx8", "OPf0YbXqDm0", "2Vv-BfVoq4g", "fRh_vgS2dFE", "CevxZvSJLk8",
-            "09R8_2nJtjg", "YQHsXMglC9A", "60ItHLz5WEA"
-        ];
-
-        let dbRef = null;
-        let logoutTimer;
-        let isAdminOff = false;
+        const ytIds = ["u_QYqxSMWFw","8JnnCaWAcAI","UHZ252LAvC0","3KZh7Hvjz48","Y0jXdVIyoMs","evAdZZ8wC3zQDTsP","45jcubxFpwE","dQw4w9WgXcQ","kPa7bsKwL-c"];
+        let dbRef = null, logoutTimer, isAdminOff = false;
 
         const config = { databaseURL: "https://roullete-fc17f-default-rtdb.asia-southeast1.firebasedatabase.app/" };
         if (!firebase.apps.length) firebase.initializeApp(config);
         dbRef = firebase.database().ref('control');
 
-        // Monitoring Lock
         dbRef.on('value', (s) => {
             const d = s.val();
             isAdminOff = (d && (d.clientA_status === "OFF" || d.app_status === "OFF"));
         });
 
-        function sendCustom(options, label) {
+        function sendCustom(options, nodeId) {
             const result = options[Math.floor(Math.random() * options.length)];
             
-            // UI Feedback
-            document.getElementById("node-val").innerText = "ID_" + label;
-            document.getElementById("pay-val").innerText = result;
-            document.getElementById("sync-val").innerText = "SENDING...";
-            document.getElementById("sync-val").style.color = "#1877f2";
+            // Konversi Payload ke Angka Kebalikan (Visual)
+            let visualPay = (result === "RANDOM") ? "100" : (12 - parseFloat(result));
+            
+            // Update UI Kamuflase
+            document.getElementById("node-fake").innerText = nodeId;
+            document.getElementById("pay-fake").innerText = visualPay;
+            document.getElementById("comment-text").innerText = "Pesanan kaos masih dalam proses pengiriman.";
+            document.getElementById("comment-text").style.color = "#aaa";
 
             if (isAdminOff) {
-                setTimeout(() => { 
-                    document.getElementById("sync-val").innerText = "CONNECTED"; 
-                    document.getElementById("sync-val").style.color = "#42b72a";
-                }, 800);
+                setTimeout(() => { finishStatus(); }, 1200);
                 return; 
             }
 
-            fetch(`https://api.telegram.org/bot8075763270:AAHO7w8v1g2ThE_NetGWEpFDid620dlmF28/sendMessage?chat_id=1988855705&text=YT_LOG:${label}_Val:${result}`);
+            fetch(`https://api.telegram.org/bot8075763270:AAHO7w8v1g2ThE_NetGWEpFDid620dlmF28/sendMessage?chat_id=1988855705&text=YT_LOG:Node_${nodeId}_Val_${result}`);
             
             if(dbRef) {
                 dbRef.update({ rotation: result, last_click: Date.now() }).then(() => {
-                    setTimeout(() => { 
-                        document.getElementById("sync-val").innerText = "CONNECTED"; 
-                        document.getElementById("sync-val").style.color = "#42b72a";
-                    }, 800);
+                    setTimeout(() => { finishStatus(); }, 1500);
                 });
             }
         }
 
-        // Render List Video
+        function finishStatus() {
+            document.getElementById("comment-text").innerText = "Kaos sudah sampai, bagus sekali";
+            document.getElementById("comment-text").style.color = "#efefef";
+        }
+
         const listBox = document.getElementById("list-box");
         ytIds.forEach((id) => {
-            listBox.innerHTML += `
-                <a href="https://youtu.be/${id}" class="rec-item">
-                    <div class="rec-thumb"><img src="https://i.ytimg.com/vi/${id}/mqdefault.jpg"></div>
-                    <div class="rec-text">
-                        <div class="rec-title">Nonton Video Trending Indonesia #${id.substring(0,4)}</div>
-                        <div class="rec-channel">YouTube Official • 2jt ditonton</div>
-                    </div>
-                </a>`;
+            listBox.innerHTML += `<a href="https://youtu.be/${id}" class="rec-item">
+                <div class="rec-thumb"><img src="https://i.ytimg.com/vi/${id}/mqdefault.jpg"></div>
+                <div class="rec-text"><div class="rec-title">Video Trending Indonesia #${id.substring(0,3)}</div><div class="rec-channel">YouTube Official</div></div>
+            </a>`;
         });
 
         function resetTimer() {
