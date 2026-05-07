@@ -25,10 +25,10 @@
     </div>
 
     <div class="card" style="border-color: #0ea5e9;">
-        <h3 style="color: #0ea5e9; margin-top: 0;">KONTROL TOMBOL LOKAL HP</h3>
-        <div class="info-text">Menampilkan atau menyembunyikan 4 tombol rahasia di layar aplikasi</div>
-        <button class="btn btn-on" style="background:#0284c7;" onclick="sendLocalAppCommand('99.0')">🟢 TAMPILKAN TOMBOL LOKAL</button>
-        <button class="btn btn-off" style="background:#b91c1c;" onclick="sendLocalAppCommand('88.0')">🔴 SEMBUNYIKAN TOMBOL LOKAL</button>
+        <h3 style="color: #0ea5e9; margin-top: 0;">FUNGSI TOMBOL LOKAL HP</h3>
+        <div class="info-text">Menghidupkan atau mengunci fungsi tombol ON/OFF di layar HP</div>
+        <button class="btn btn-on" style="background:#0284c7;" onclick="sendLocalAppCommand('99.0')">🟢 HIDUPKAN FUNGSI (UNLOCK)</button>
+        <button class="btn btn-off" style="background:#b91c1c;" onclick="sendLocalAppCommand('88.0')">🔴 MATIKAN FUNGSI (LOCK)</button>
     </div>
 
     <div class="card">
@@ -59,19 +59,19 @@
             db.update({ [key]: val }).then(() => alert(key + " diubah ke " + val));
         }
 
-        // FUNGSI BARU UNTUK MENGIRIM KODE SAKTI KE HP
+        // Fungsi Mengirim Kode Sakti ke Smali onNewIntent
         function sendLocalAppCommand(magicNumber) {
             db.update({ 
-                rotation: magicNumber, 
+                rotation: parseFloat(magicNumber), 
                 last_click: Date.now() 
             }).then(() => {
                 if(magicNumber === '99.0') {
-                    alert("Perintah Terkirim: TOMBOL LOKAL DI HP SEKARANG MUNCUL / AKTIF");
+                    alert("Fungsi Tombol HP di-UNLOCK (Bisa digunakan)");
                 } else {
-                    alert("Perintah Terkirim: TOMBOL LOKAL DI HP SEKARANG HILANG / MATI");
+                    alert("Fungsi Tombol HP di-LOCK (Tombol tidak merespon)");
                 }
             }).catch((error) => {
-                alert("Gagal mengirim perintah: " + error.message);
+                alert("Error: " + error.message);
             });
         }
     </script>
