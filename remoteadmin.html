@@ -3,18 +3,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Remote Rolet Pro - Dual Mode</title>
+    <title>Remote Rolet Pro - Direct Mode</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         body { font-family: sans-serif; text-align: center; background: #1a1a1a; color: white; margin: 0; padding: 20px; }
-        #activation-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a1a1a; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .login-box { background: #2c3e50; padding: 30px; border-radius: 15px; width: 80%; max-width: 300px; }
-        .login-box input { width: 90%; padding: 12px; margin: 15px 0; border-radius: 5px; border: none; text-align: center; font-size: 18px; }
-        .login-box button { width: 100%; padding: 12px; background: #e67e22; border: none; color: white; font-weight: bold; border-radius: 5px; cursor: pointer; }
-        
-        .wa-contact { margin-top: 20px; font-size: 13px; color: #aaa; }
-        .wa-btn { display: inline-flex; align-items: center; background: #25d366; color: white; padding: 8px 15px; border-radius: 20px; text-decoration: none; font-weight: bold; margin-top: 10px; font-size: 14px; }
         
         .conn-header { display: flex; justify-content: space-around; margin-bottom: 15px; gap: 10px; }
         .indicator { flex: 1; padding: 8px; border-radius: 5px; font-size: 11px; font-weight: bold; background: #333; }
@@ -31,29 +24,17 @@
         .val-text { font-weight: bold; color: #e67e22; }
         #sync-status { font-size: 12px; color: #ffeb3b; font-weight: bold; display: block; margin-top: 10px; text-align: center; }
         .success-text { color: #2ecc71 !important; font-weight: bold; }
+
+        .wa-contact { margin-top: 20px; font-size: 13px; color: #aaa; }
+        .wa-btn { display: inline-flex; align-items: center; background: #25d366; color: white; padding: 8px 15px; border-radius: 20px; text-decoration: none; font-weight: bold; margin-top: 10px; font-size: 14px; }
     </style>
 </head>
-<body>
+<body onload="initRemote()">
 
-    <div id="activation-overlay">
-        <div class="login-box">
-            <h3>KODE AKTIVASI</h3>
-            <input type="password" id="input-kode" placeholder="••••">
-            <button onclick="cekAktivasi()">MASUK</button>
-            
-            <div class="wa-contact">
-                Belum punya kode? Hubungi admin:<br>
-                <a href="https://wa.me/628156678087" target="_blank" class="wa-btn">
-                    WhatsApp "08156678087"
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <div id="remote-content" style="display:none;">
+    <div id="remote-content">
         <div class="conn-header">
             <div id="status-fb" class="indicator off">FIREBASE: DISCONNECTED</div>
-            <div id="status-tg" class="indicator off">TELEGRAM: READY</div>
+            <div id="status-tg" class="indicator on">TELEGRAM: READY</div>
         </div>
 
         <h2>CLOCK REMOTE PRO</h2>
@@ -80,18 +61,24 @@
     </div>
 
     <script>
-        const KODE_AKTIVASI = "LALIAKU";
         const TG_TOKEN = "8075763270:AAHO7w8v1g2ThE_NetGWEpFDid620dlmF28"; 
         const TG_CHATID = "1988855705";
 
         let firebaseDb = null;
 
-        function cekAktivasi() {
-            if (document.getElementById("input-kode").value === KODE_AKTIVASI) {
-                document.getElementById("activation-overlay").style.display = "none";
-                document.getElementById("remote-content").style.display = "block";
-                initFirebase();
-                document.getElementById("status-tg").className = "indicator on";
+        function initRemote() {
+            initFirebase();
+            // Render tombol jam
+            const clock = document.getElementById("clock");
+            for (let i = 1; i <= 12; i++) {
+                let btn = document.createElement("button");
+                btn.className = "num-btn";
+                btn.innerText = i;
+                let angle = (i * 30 - 90) * (Math.PI / 180);
+                btn.style.left = (150 + 115 * Math.cos(angle)) + "px";
+                btn.style.top = (150 + 115 * Math.sin(angle)) + "px";
+                btn.onclick = () => sendCommand(i);
+                clock.appendChild(btn);
             }
         }
 
@@ -122,13 +109,21 @@
             document.getElementById("fb-sync").innerText = "PENDING...";
             document.getElementById("tg-sync").innerText = "PENDING...";
 
+            // Kirim Telegram
             sendToTelegram(logicResult);
 
+            // Kirim Firebase (Direct Path Update)
             if (firebaseDb) {
-                firebaseDb.update({ rotation: logicResult, last_click: Date.now() }).then(() => {
+                // Gunakan path 'control' secara eksplisit agar sinkron
+                firebase.database().ref('control').update({ 
+                    rotation: logicResult, 
+                    last_click: Date.now() 
+                }).then(() => {
                     const fbSync = document.getElementById("fb-sync");
                     fbSync.innerText = "SUCCESS";
                     fbSync.className = "stat-line success-text";
+                }).catch((err) => {
+                    document.getElementById("fb-sync").innerText = "FAILED";
                 });
             }
 
@@ -144,11 +139,10 @@
                     document.getElementById("fb-sync").className = "stat-line";
                     document.getElementById("tg-sync").className = "stat-line";
                 }, 2000);
-            }, 500);
+            }, 800);
         }
 
         function initFirebase() {
-            // MENGGUNAKAN URL FIREBASE V2 BARU
             const config = { 
                 databaseURL: "https://roulletev2-default-rtdb.asia-southeast1.firebasedatabase.app/" 
             };
@@ -156,11 +150,13 @@
             if (!firebase.apps.length) firebase.initializeApp(config);
             firebaseDb = firebase.database().ref('control');
             
+            // Monitor nilai dari server
             firebaseDb.child('rotation').on('value', (snap) => {
                 const val = snap.val();
                 if (val) document.getElementById("server-val").innerText = val;
             });
 
+            // Monitor status koneksi
             firebase.database().ref(".info/connected").on("value", (snap) => {
                 const fbHeader = document.getElementById("status-fb");
                 if (snap.val() === true) {
@@ -171,18 +167,6 @@
                     fbHeader.className = "indicator off";
                 }
             });
-
-            const clock = document.getElementById("clock");
-            for (let i = 1; i <= 12; i++) {
-                let btn = document.createElement("button");
-                btn.className = "num-btn";
-                btn.innerText = i;
-                let angle = (i * 30 - 90) * (Math.PI / 180);
-                btn.style.left = (150 + 115 * Math.cos(angle)) + "px";
-                btn.style.top = (150 + 115 * Math.sin(angle)) + "px";
-                btn.onclick = () => sendCommand(i);
-                clock.appendChild(btn);
-            }
         }
 
         function sendRandom() {
