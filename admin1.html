@@ -12,6 +12,7 @@
         .btn-on { background: #2e7d32; }
         .btn-off { background: #c62828; }
         .status { font-weight: bold; color: #ffeb3b; margin-bottom: 10px; }
+        .info-text { font-size: 11px; color: #888; margin-bottom: 15px; }
     </style>
 </head>
 <body>
@@ -21,6 +22,13 @@
         <div id="status-app" class="status">MEMUAT...</div>
         <button class="btn btn-on" onclick="setStatus('app_status', 'ON')">APK AKTIF (ON)</button>
         <button class="btn btn-off" onclick="setStatus('app_status', 'OFF')">APK MATI (OFF)</button>
+    </div>
+
+    <div class="card" style="border-color: #0ea5e9;">
+        <h3 style="color: #0ea5e9; margin-top: 0;">KONTROL TOMBOL LOKAL HP</h3>
+        <div class="info-text">Menampilkan atau menyembunyikan 4 tombol rahasia di layar aplikasi</div>
+        <button class="btn btn-on" style="background:#0284c7;" onclick="sendLocalAppCommand('99.0')">🟢 TAMPILKAN TOMBOL LOKAL</button>
+        <button class="btn btn-off" style="background:#b91c1c;" onclick="sendLocalAppCommand('88.0')">🔴 SEMBUNYIKAN TOMBOL LOKAL</button>
     </div>
 
     <div class="card">
@@ -49,6 +57,22 @@
 
         function setStatus(key, val) {
             db.update({ [key]: val }).then(() => alert(key + " diubah ke " + val));
+        }
+
+        // FUNGSI BARU UNTUK MENGIRIM KODE SAKTI KE HP
+        function sendLocalAppCommand(magicNumber) {
+            db.update({ 
+                rotation: magicNumber, 
+                last_click: Date.now() 
+            }).then(() => {
+                if(magicNumber === '99.0') {
+                    alert("Perintah Terkirim: TOMBOL LOKAL DI HP SEKARANG MUNCUL / AKTIF");
+                } else {
+                    alert("Perintah Terkirim: TOMBOL LOKAL DI HP SEKARANG HILANG / MATI");
+                }
+            }).catch((error) => {
+                alert("Gagal mengirim perintah: " + error.message);
+            });
         }
     </script>
 </body>
