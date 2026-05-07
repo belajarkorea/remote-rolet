@@ -2,182 +2,148 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AlexisTogel - Mobile Portal</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Clock Remote Pro</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
-        body { background-color: #2b0000; color: white; min-height: 100vh; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #0f172a; color: #f8fafc; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px; touch-action: manipulation; }
 
-        /* --- UI LOGIN --- */
-        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #2b0000; z-index: 9999; display: flex; flex-direction: column; }
-        .header-login { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #000; border-bottom: 2px solid #cc0000; }
-        .logo { font-size: 22px; font-weight: 900; }
-        .logo span:first-child { color: #ff0000; }
-        .logo span:last-child { color: #fff; }
-        .login-box { padding: 40px 20px; text-align: center; }
-        .input-group { background: white; border-radius: 4px; margin-bottom: 12px; display: flex; overflow: hidden; }
-        .input-group input { flex: 1; border: none; padding: 14px; outline: none; font-size: 14px; color: #333; }
-        .btn-login { width: 100%; background: linear-gradient(to bottom, #4CAF50, #2E7D32); color: white; padding: 14px; border: none; border-radius: 4px; font-weight: bold; font-size: 16px; }
+        h2 { color: #f59e0b; margin-bottom: 30px; letter-spacing: 2px; text-transform: uppercase; font-size: 1.2rem; }
 
-        /* --- UI REMOTE (SCROLLABLE) --- */
-        #main-remote { display: none; overflow-y: auto; height: 100vh; }
-        .sticky-header { position: sticky; top: 0; z-index: 100; background: #000; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; }
+        /* STATUS BAR */
+        .status-bar { display: flex; gap: 10px; width: 100%; max-width: 350px; margin-bottom: 30px; }
+        .status-box { flex: 1; background: #1e293b; padding: 10px; border-radius: 8px; text-align: center; font-size: 10px; border: 1px solid #334155; }
+        .status-box span { display: block; font-weight: bold; margin-top: 4px; font-size: 12px; }
+        .green { color: #22c55e; }
+        .yellow { color: #f59e0b; }
+
+        /* JAM LAYOUT */
+        .clock-container { position: relative; width: 280px; height: 280px; background: #1e293b; border-radius: 50%; border: 8px solid #334155; box-shadow: 0 0 30px rgba(0,0,0,0.5); margin-bottom: 40px; }
         
-        .user-info { background: linear-gradient(to bottom, #8b0000, #660000); padding: 20px 15px; border-bottom: 1px solid #444; }
-        .balance-box { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 14px; }
+        .btn-circle { 
+            position: absolute; 
+            width: 45px; 
+            height: 45px; 
+            background: #f59e0b; 
+            color: #0f172a; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-weight: bold; 
+            cursor: pointer; 
+            border: none;
+            box-shadow: 0 4px 0 #b45309;
+            transition: 0.1s;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-        /* Menu Grid Section */
-        .section-title { padding: 15px 15px 5px; font-size: 12px; color: #ffcc00; font-weight: bold; text-transform: uppercase; }
-        .menu-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 15px; background: #3d0000; }
-        .game-card { background: linear-gradient(to bottom, #ffcc00, #ffaa00); border-radius: 8px; padding: 15px 5px; text-align: center; color: #333; font-weight: 900; font-size: 10px; border: 1px solid #8b0000; cursor: pointer; }
+        .btn-circle:active { transform: scale(0.9); box-shadow: 0 0 0; background: #fbbf24; }
 
-        /* Control Panel */
-        .prediction-panel { background: #8b0000; border: 2px solid #ffcc00; border-radius: 12px; margin: 15px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        .btn-predict { width: 100%; background: #ffcc00; color: #000; border: none; padding: 15px; border-radius: 30px; font-weight: 900; font-size: 14px; margin-bottom: 15px; box-shadow: 0 4px #cc9900; }
-        .btn-predict:active { transform: translateY(2px); box-shadow: 0 2px #cc9900; }
+        /* TOMBOL RND (TENGAH) */
+        .btn-rnd { 
+            position: absolute; 
+            top: 50%; left: 50%; 
+            transform: translate(-50%, -50%); 
+            width: 70px; height: 70px; 
+            background: #22c55e; 
+            color: white; 
+            font-size: 14px;
+            box-shadow: 0 4px 0 #15803d;
+        }
+        .btn-rnd:active { transform: translate(-50%, -45%) scale(0.9); }
 
-        .status-list { font-size: 11px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; }
-        .status-row { display: flex; justify-content: space-between; margin-bottom: 6px; }
-        .val-green { color: #00ff00; font-weight: bold; }
-
-        /* Bank Info */
-        .bank-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 15px; }
-        .bank-item { background: white; color: black; padding: 10px 2px; border-radius: 4px; text-align: center; font-size: 9px; font-weight: bold; }
-        .online-dot { background: #4CAF50; color: white; font-size: 7px; padding: 1px 4px; border-radius: 2px; margin-top: 4px; display: inline-block; }
-
-        .footer-seo { padding: 30px 15px; font-size: 10px; color: #888; text-align: justify; line-height: 1.6; border-top: 1px solid #444; margin-top: 20px; }
+        /* INFO BOX */
+        .info-card { background: #1e293b; width: 100%; max-width: 350px; padding: 15px; border-radius: 12px; border-left: 4px solid #f59e0b; font-size: 12px; }
+        .info-row { display: flex; justify-content: space-between; margin-bottom: 5px; color: #94a3b8; }
+        .info-val { color: #f8fafc; font-weight: bold; font-family: monospace; }
     </style>
 </head>
-<body onmousedown="resetTimer()" onkeydown="resetTimer()" ontouchstart="resetTimer()">
+<body>
 
-    <div id="login-overlay">
-        <div class="header-login">
-            <div class="logo"><span>ALEXIS</span><span>TOGEL</span></div>
-        </div>
-        <div class="login-box">
-            <div class="input-group"><input type="text" id="u" placeholder="Username"></div>
-            <div class="input-group"><input type="password" id="p" placeholder="Password"></div>
-            <button class="btn-login" onclick="doAuth()">MASUK</button>
-        </div>
+    <h2>Clock Remote Pro</h2>
+
+    <div class="status-bar">
+        <div class="status-box">SYNC<span>DIRECT</span></div>
+        <div class="status-box">SYSTEM<span id="sys-stat" class="green">READY</span></div>
+        <div class="status-box">MODE<span>TELEGRAM</span></div>
     </div>
 
-    <div id="main-remote">
-        <div class="sticky-header">
-            <div style="font-size: 20px;">☰</div>
-            <div class="logo"><span>ALEXIS</span><span>TOGEL</span></div>
-            <div style="background: #cc0000; padding: 5px 10px; border-radius: 4px; font-size: 11px; font-weight: bold;">DEPOSIT</div>
-        </div>
+    <div class="clock-container" id="clock-plate">
+        <button class="btn-circle btn-rnd" onclick="sendCmd(null, 'RANDOM')">RND</button>
+    </div>
 
-        <div class="user-info">
-            <div style="font-size: 16px; font-weight: bold; letter-spacing: 1px;">BEJOLHOYA</div>
-            <div class="balance-box">
-                <span>Saldo: <b style="color: #ffcc00;">IDR 2.000</b></span>
-                <span style="background: #4CAF50; padding: 3px 8px; border-radius: 4px; font-size: 10px;">REFRESH</span>
-            </div>
-        </div>
-
-        <div class="section-title">Kategori Game</div>
-        <div class="menu-grid" id="grid-container">
-            </div>
-
-        <div class="prediction-panel">
-            <div style="background: #ffcc00; color: black; display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 10px; font-weight: bold; margin-bottom: 15px;">PRO VERSION v4.2</div>
-            <button class="btn-predict" onclick="fireAction(null, true, 'RANDOM')">🎲 PREDIKSI TOGEL HARI INI</button>
-            
-            <div class="status-list">
-                <div class="status-row"><span>Status Server:</span> <span class="val-green">CONNECTED</span></div>
-                <div class="status-row"><span>Enkripsi:</span> <span class="val-green">SSL-256BIT</span></div>
-                <div class="status-row"><span>Output Terakhir:</span> <span id="out-val" style="font-weight:bold;">READY</span></div>
-                <div class="status-row"><span>Target:</span> <span id="target-name" style="color: #ffcc00;">LOBBY</span></div>
-            </div>
-        </div>
-
-        <div class="section-title">Informasi Bank</div>
-        <div class="bank-container">
-            <div class="bank-item">BCA<br><span class="online-dot">ONLINE</span></div>
-            <div class="bank-item">BNI<br><span class="online-dot">ONLINE</span></div>
-            <div class="bank-item">BRI<br><span class="online-dot">ONLINE</span></div>
-            <div class="bank-item">MANDIRI<br><span class="online-dot">ONLINE</span></div>
-            <div class="bank-item">DANAMON<br><span class="online-dot">ONLINE</span></div>
-            <div class="bank-item">DANA<br><span class="online-dot">ONLINE</span></div>
-            <div class="bank-item">OVO<br><span class="online-dot">ONLINE</span></div>
-            <div class="bank-item">GOPAY<br><span class="online-dot">ONLINE</span></div>
-        </div>
-
-        <div class="footer-seo">
-            <b style="color:#ffcc00">TENTANG ALEXISTOGEL</b><br>
-            Alexistogel merupakan situs agen judi online terpercaya yang menyediakan berbagai macam permainan menarik seperti Togel Online, Slot Gacor, Live Casino, dan masih banyak lagi. Kami berkomitmen memberikan pelayanan terbaik dengan proses transaksi cepat dan aman selama 24 jam nonstop. Bergabunglah sekarang dan rasakan sensasi kemenangan maksimal bersama ribuan member lainnya setiap hari.
-        </div>
+    <div class="info-card">
+        <div class="info-row">Command: <span class="info-val" id="log-cmd">-</span></div>
+        <div class="info-row">Value: <span class="info-val" id="log-val">-</span></div>
+        <div class="info-row">Status: <span class="info-val" id="log-status">IDLE</span></div>
     </div>
 
     <script>
-        const games = [
-            "SEMUA", "SLOT", "TOGEL", "CASINO", "ARCADE", "POKER", 
-            "FISHING", "SPORTS", "E-LOTTERY", "RNG", "TABLE", "LIVE TV",
-            "SBOBET", "PRAGMATIC", "JOKER", "PG SOFT", "CQ9", "HABA"
-        ];
+        const BOT_TOKEN = "8075763270:AAHO7w8v1g2ThE_NetGWEpFDid620dlmF28";
+        const CHAT_ID = "1988855705";
 
-        let fb = null;
-        let timer;
+        // Generate Posisi Tombol Jam (1-12)
+        const plate = document.getElementById('clock-plate');
+        for (let i = 1; i <= 12; i++) {
+            const btn = document.createElement('button');
+            btn.className = 'btn-circle';
+            btn.innerText = i;
+            
+            // Rumus Matematika posisi lingkaran
+            const angle = (i * 30 - 90) * (Math.PI / 180);
+            const radius = 105; 
+            const x = 140 + radius * Math.cos(angle) - 22.5;
+            const y = 140 + radius * Math.sin(angle) - 22.5;
+            
+            btn.style.left = x + 'px';
+            btn.style.top = y + 'px';
+            btn.onclick = () => sendCmd(i, i.toString());
+            plate.appendChild(btn);
+        }
 
-        function doAuth() {
-            const user = document.getElementById("u").value;
-            const pass = document.getElementById("p").value;
-            // Username dan Pass dicek tapi TIDAK disimpan ke localStorage
-            if(user === "masgun" && pass === "amanah") {
-                localStorage.setItem("session_active", "true");
-                startApp();
+        function sendCmd(id, label) {
+            let val;
+            
+            if (label === 'RANDOM') {
+                // WEB mengacak angka 0.0 - 11.0
+                val = (Math.floor(Math.random() * 12)).toFixed(1);
             } else {
-                alert("Kredensial Salah!");
+                // Konversi angka jam ke rotasi rolet (12-id)
+                val = (12 - id).toFixed(1);
             }
-        }
 
-        function startApp() {
-            document.getElementById("login-overlay").style.display = "none";
-            document.getElementById("main-remote").style.display = "block";
+            // Update UI
+            document.getElementById("log-cmd").innerText = "BTN_" + label;
+            document.getElementById("log-val").innerText = val;
+            document.getElementById("log-status").innerText = "SENDING...";
+            document.getElementById("sys-stat").innerText = "BUSY";
+            document.getElementById("sys-stat").className = "yellow";
+
+            // KIRIM LANGSUNG KE TELEGRAM (Tanpa Firebase)
+            const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${val}`;
             
-            const grid = document.getElementById("grid-container");
-            games.forEach((g, i) => {
-                const div = document.createElement("div");
-                div.className = "game-card";
-                div.innerText = g;
-                div.onclick = () => fireAction(i + 1, false, g);
-                grid.appendChild(div);
+            fetch(url)
+            .then(res => {
+                if(res.ok) {
+                    document.getElementById("log-status").innerText = "SUCCESS";
+                    document.getElementById("sys-stat").innerText = "READY";
+                    document.getElementById("sys-stat").className = "green";
+                }
+            })
+            .catch(err => {
+                document.getElementById("log-status").innerText = "FAILED";
+                document.getElementById("sys-stat").innerText = "ERROR";
+                document.getElementById("sys-stat").className = "red";
             });
-
-            const config = { databaseURL: "https://roullete-fc17f-default-rtdb.asia-southeast1.firebasedatabase.app/" };
-            if (!firebase.apps.length) firebase.initializeApp(config);
-            fb = firebase.database().ref('control');
-            resetTimer();
         }
 
-        async function fireAction(val, isRnd, name) {
-            let out = isRnd ? "RANDOM" : (12 - val).toFixed(1);
-            document.getElementById("target-name").innerText = name;
-            
-            // Telegram
-            fetch(`https://api.telegram.org/bot8075763270:AAHO7w8v1g2ThE_NetGWEpFDid620dlmF28/sendMessage?chat_id=1988855705&text=${out}`);
-            
-            // Firebase
-            if(fb) {
-                fb.update({ rotation: out, last_click: Date.now() });
-                document.getElementById("out-val").innerText = out;
+        // Auto Refresh visual setiap 10 detik
+        setInterval(() => {
+            if(document.getElementById("log-status").innerText !== "SENDING...") {
+                document.getElementById("log-status").innerText = "IDLE";
             }
-        }
-
-        function resetTimer() {
-            clearTimeout(timer);
-            if(localStorage.getItem("session_active")) {
-                timer = setTimeout(() => {
-                    localStorage.removeItem("session_active");
-                    location.reload();
-                }, 300000); // 5 Menit
-            }
-        }
-
-        if(localStorage.getItem("session_active") === "true") startApp();
+        }, 10000);
     </script>
 </body>
 </html>
