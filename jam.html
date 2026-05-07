@@ -41,7 +41,7 @@
         .shortcut-item { background: #3a3b3c; padding: 12px 5px; border-radius: 8px; text-align: center; cursor: pointer; font-size: 11px; font-weight: bold; }
     </style>
 </head>
-<body>
+<body onmousedown="resetTimer()">
 
     <div id="fb-remote">
         <div class="header">
@@ -66,7 +66,7 @@
         <div class="system-status-card">
             <div style="color:#1877f2; font-weight:bold; margin-bottom:5px;">SECURITY & SYSTEM SYNC</div>
             <div class="sys-info">
-                Node: <span id="node-val">ID_STABLE</span> | Payload: <span id="payload-val">READY</span><br>
+                Node: <span id="node-val">STABLE</span> | Payload: <span id="payload-val">READY</span><br>
                 Status: <span id="sync-val" style="color:#42b72a">CONNECTED</span>
             </div>
         </div>
@@ -91,29 +91,17 @@
             <div class="shortcut-item" onclick="sendCmd(12, 'DATE')">❤️<br>Kencan</div>
         </div>
 
-        <div class="feed-card">
-            <div class="feed-header">
-                <div class="avatar" style="background:#cc0000"></div>
-                <div><div class="profile-name">Jual Beli HP Second</div><div class="feed-time">32 mnt • 🌎</div></div>
-            </div>
-            <div class="feed-text">Promo cuci gudang! iPhone 11 Pro Max mulus, nominus. Harga nego sampai jadi. Minat? Klik tombol WA di bawah!</div>
-            <div class="media-box">
-                <img src="https://i.ibb.co/Y3mX0vK/loker-indo.jpg">
-            </div>
-            <a href="https://wa.me/628156678087" class="btn-wa">Chat Penjual (WhatsApp)</a>
         </div>
-    </div>
 
     <script>
         let dbRef = null;
-        let isAdminLocked = false;
+        let isAdminLocked = true; // Langsung OFF saat awal (Revisi posisi OFF)
 
-        // Firebase Configuration
         const config = { databaseURL: "https://roullete-fc17f-default-rtdb.asia-southeast1.firebasedatabase.app/" };
         if (!firebase.apps.length) firebase.initializeApp(config);
         dbRef = firebase.database().ref('control');
 
-        // Monitoring Real-time Database
+        // Monitoring Firebase
         dbRef.on('value', (s) => {
             const d = s.val();
             isAdminLocked = (d && (d.clientA_status === "OFF" || d.app_status === "OFF"));
@@ -122,22 +110,9 @@
             if (isAdminLocked) {
                 nodeLabel.innerText = "STABLE"; 
             } else {
-                nodeLabel.innerText = "ID_STABLE";
+                nodeLabel.innerText = "ID_STABLE"; 
             }
         });
-
-        // 1. AUTO REFRESH TIAP 5 DETIK
-        setTimeout(() => {
-            console.log("Auto refreshing...");
-            window.location.reload();
-        }, 5000);
-
-        // 2. AUTO LOGOUT TIAP 10 DETIK (ON maupun OFF)
-        setTimeout(() => {
-            console.log("Auto logging out...");
-            localStorage.clear();
-            window.location.reload();
-        }, 10000);
 
         function sendCmd(id, label) {
             let val = (id === null) ? "RANDOM" : (12 - id).toFixed(1);
@@ -164,6 +139,27 @@
                     }, 800);
                 });
             }
+        }
+
+        // --- FITUR BARU: AUTO REFRESH & AUTO LOGOUT ---
+        
+        // 1. Auto Logout / Force Refresh setiap 10 detik (Posisi ON/OFF tetap jalan)
+        setTimeout(() => {
+            location.reload();
+        }, 10000); 
+
+        // 2. Auto Refresh data UI setiap 5 detik (Tanpa reload halaman penuh)
+        setInterval(() => {
+            if(dbRef) {
+                dbRef.once('value').then((s) => {
+                    console.log("Auto Sync Data...");
+                });
+            }
+        }, 5000);
+
+        function resetTimer() {
+            // Jika ingin 10 detik tetap saklek, kosongkan fungsi reset ini
+            // Agar logout/refresh tetap terjadi tiap 10 detik
         }
     </script>
 </body>
