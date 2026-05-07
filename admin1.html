@@ -2,9 +2,10 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Admin Control Center</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Control Center V2</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
         body { font-family: sans-serif; text-align: center; background: #121212; color: white; padding: 20px; }
         .card { background: #1e1e1e; padding: 20px; border-radius: 12px; border: 1px solid #333; max-width: 400px; margin: 0 auto 15px; }
@@ -14,12 +15,12 @@
         .btn-off { background: #c62828; }
         .status { font-weight: bold; color: #ffeb3b; margin-bottom: 10px; font-size: 20px; text-shadow: 0 0 5px rgba(0,0,0,0.5); }
         .info-text { font-size: 11px; color: #888; margin-bottom: 15px; }
-        #conn-status { font-size: 10px; color: #4CAF50; margin-bottom: 10px; }
+        #conn-status { font-size: 10px; color: #4CAF50; margin-bottom: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div id="conn-status">MENGHUBUNGKAN KE FIREBASE...</div>
+    <div id="conn-status">MENGHUBUNGKAN...</div>
 
     <div class="card">
         <h3>GLOBAL KILL SWITCH (APK)</h3>
@@ -50,39 +51,45 @@
     </div>
 
     <script>
-        // Pastikan URL Database benar
-        const config = { databaseURL: "https://roullete-fc17f-default-rtdb.asia-southeast1.firebasedatabase.app/" };
+        // URL DATABASE BARU (V2)
+        const config = { 
+            databaseURL: "https://roulletev2-default-rtdb.asia-southeast1.firebasedatabase.app/" 
+        };
         
         if (!firebase.apps.length) firebase.initializeApp(config);
         const db = firebase.database().ref('control');
 
-        // Monitoring koneksi
+        // Monitoring koneksi fisik
         firebase.database().ref(".info/connected").on("value", (snap) => {
+            const conn = document.getElementById('conn-status');
             if (snap.val() === true) {
-                document.getElementById('conn-status').innerText = "● KONEKSI FIREBASE AKTIF";
-                document.getElementById('conn-status').style.color = "#4CAF50";
+                conn.innerText = "● KONEKSI FIREBASE V2 AKTIF";
+                conn.style.color = "#4CAF50";
+                firebase.database().goOnline(); // Paksa tetap online
             } else {
-                document.getElementById('conn-status').innerText = "○ KONEKSI TERPUTUS";
-                document.getElementById('conn-status').style.color = "#f44336";
+                conn.innerText = "○ KONEKSI TERPUTUS";
+                conn.style.color = "#f44336";
             }
         });
 
-        // Mendengarkan perubahan data secara realtime
+        // Monitoring data secara realtime
         db.on('value', (snapshot) => {
             const data = snapshot.val();
             
-            // Jika data belum ada di Firebase (null), paksa buat status awal
+            // Jika data masih kosong di Firebase baru, suntikkan data default
             if (!data) {
+                console.log("Inisialisasi Data Baru...");
                 db.set({
                     app_status: "ON",
                     clientA_status: "ON",
                     clientB_status: "ON",
-                    rotation: "0.0"
+                    rotation: "0.0",
+                    last_click: Date.now()
                 });
                 return;
             }
 
-            // Update Teks Status
+            // Update UI Berdasarkan Data Firebase
             updateUI('status-app', data.app_status || "ON");
             updateUI('status-a', data.clientA_status || "ON");
             updateUI('status-b', data.clientB_status || "ON");
@@ -90,16 +97,13 @@
 
         function updateUI(id, val) {
             const el = document.getElementById(id);
+            if (!el) return;
             el.innerText = val;
-            if(val === "OFF") {
-                el.style.color = "#f44336"; // Merah
-            } else {
-                el.style.color = "#4CAF50"; // Hijau
-            }
+            el.style.color = (val === "OFF") ? "#f44336" : "#4CAF50";
         }
 
         function setStatus(key, val) {
-            db.update({ [key]: val }).catch((e) => alert("Gagal: " + e.message));
+            db.update({ [key]: val }).catch((e) => alert("Gagal Update: " + e.message));
         }
 
         function sendLocalAppCommand(magicNumber) {
