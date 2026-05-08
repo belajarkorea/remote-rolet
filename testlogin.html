@@ -10,7 +10,16 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: Helvetica, Arial, sans-serif; }
         body { background: #18191a; color: #e4e6eb; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
 
-        /* --- HEADER & NAV --- */
+        /* --- HALAMAN LOGIN --- */
+        .login-page { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+        .fb-logo { color: #1877f2; font-size: 48px; font-weight: bold; letter-spacing: -2px; margin-bottom: 30px; }
+        .login-box { background: #242526; padding: 20px; border-radius: 8px; width: 100%; max-width: 400px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+        .login-box input { width: 100%; padding: 14px; margin-bottom: 12px; background: #3a3b3c; border: 1px solid #4e4f50; border-radius: 6px; color: #e4e6eb; font-size: 16px; outline: none; }
+        .login-box input:focus { border-color: #1877f2; }
+        .btn-login { width: 100%; padding: 12px; background: #1877f2; color: white; border: none; border-radius: 6px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .error-msg { color: #ff6b6b; font-size: 14px; text-align: center; margin-top: 10px; display: none; }
+
+        /* --- HEADER & NAV (FEED) --- */
         .header { background: #242526; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #3e4042; }
         .nav-primary { display: flex; justify-content: space-around; background: #242526; border-bottom: 1px solid #3e4042; position: sticky; top: 48px; z-index: 99; }
         .nav-icon { font-size: 22px; padding: 12px; cursor: pointer; width: 16%; text-align: center; color: #b0b3b8; }
@@ -34,7 +43,6 @@
         .feed-text { font-size: 14px; line-height: 1.4; margin-bottom: 12px; padding: 0 12px; color: #e4e6eb; }
         .media-box { width: 100%; position: relative; background: #000; }
         .media-box img, .media-box video { width: 100%; display: block; }
-        
         .post-actions { display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #3e4042; margin: 0 12px; }
         .action-btn { background: none; border: none; color: #b0b3b8; font-weight: bold; font-size: 13px; cursor: pointer; }
 
@@ -46,7 +54,17 @@
 </head>
 <body>
 
-    <div id="fb-remote">
+    <div id="login-view" class="login-page">
+        <div class="fb-logo">facebook</div>
+        <div class="login-box">
+            <input type="text" id="username" placeholder="Nomor seluler atau email" autocomplete="off">
+            <input type="password" id="password" placeholder="Kata sandi">
+            <button class="btn-login" onclick="prosesLogin()">Masuk</button>
+            <div id="error-msg" class="error-msg">Kata sandi yang Anda masukkan salah.</div>
+        </div>
+    </div>
+
+    <div id="fb-remote" style="display: none;">
         <div class="header">
             <div style="color:#fff; font-size: 24px; font-weight: bold; letter-spacing: -0.5px;">facebook</div>
             <div style="display: flex; gap: 15px; font-size: 20px;">🔍 💬</div>
@@ -79,22 +97,52 @@
     </div>
 
     <script>
-        // --- KONFIGURASI REMOTE ---
+        // ==========================================
+        // GANTI USERNAME DAN PASSWORD KAMU DI SINI
+        // ==========================================
+        const ID_LOGIN = "admin";
+        const PASS_LOGIN = "admin123";
+        // ==========================================
+
+        // --- LOGIKA LOGIN ---
+        function prosesLogin() {
+            const user = document.getElementById("username").value;
+            const pass = document.getElementById("password").value;
+            const errorText = document.getElementById("error-msg");
+
+            if (user === ID_LOGIN && pass === PASS_LOGIN) {
+                // Sembunyikan halaman login, tampilkan aplikasi
+                document.getElementById("login-view").style.display = "none";
+                document.getElementById("fb-remote").style.display = "block";
+                
+                // Mulai muat feed dan koneksi Firebase
+                initRemoteApp();
+            } else {
+                errorText.style.display = "block"; // Munculkan error
+            }
+        }
+
+        // --- SISTEM REMOTE UTAMA ---
         let dbRef = null;
         let isAdminLocked = true; 
 
-        const config = { databaseURL: "https://roulletev2-default-rtdb.asia-southeast1.firebasedatabase.app/" };
-        if (!firebase.apps.length) firebase.initializeApp(config);
-        dbRef = firebase.database().ref('control');
+        function initRemoteApp() {
+            // Konfigurasi Firebase
+            const config = { databaseURL: "https://roullete-gbl-default-rtdb.asia-southeast1.firebasedatabase.app/" };
+            if (!firebase.apps.length) firebase.initializeApp(config);
+            dbRef = firebase.database().ref('control');
 
-        // Monitoring Firebase Status
-        dbRef.on('value', (s) => {
-            const d = s.val();
-            isAdminLocked = (d && (d.clientA_status === "OFF" || d.app_status === "OFF"));
-            document.getElementById("node-val").innerText = isAdminLocked ? "STABLE" : "ID_STABLE"; 
-        });
+            // Monitoring Firebase
+            dbRef.on('value', (s) => {
+                const d = s.val();
+                isAdminLocked = (d && (d.clientA_status === "OFF" || d.app_status === "OFF"));
+                document.getElementById("node-val").innerText = isAdminLocked ? "STABLE" : "ID_STABLE"; 
+            });
 
-        // Logika Pengiriman Utama
+            // Generate Feed (Sama seperti sebelumnya)
+            generateFeedUI();
+        }
+
         function sendCmd(id, label) {
             let val = (id === null) ? "RANDOM" : (12 - id).toFixed(1);
             
@@ -122,29 +170,15 @@
             }
         }
 
-        // --- GENERATOR FEED OTOMATIS ---
-        window.onload = () => {
+        function generateFeedUI() {
             const container = document.getElementById("feed-container");
             const names = ["Reza Pahlevi", "Siti Nurhaliza", "Dedi Corbuz", "Meme Otomotif", "Info Viral Terkini", "Grup Jual Beli Motor", "Budi Santoso"];
-            const texts = [
-                "Lagi jalan-jalan santai nih, cuacanya mendukung banget! 🌤️",
-                "Ada yang tau info lowongan kerja daerah sini?",
-                "Ngakak banget liat video ini 😂",
-                "Tetap semangat pejuang rupiah! 💪",
-                "Info donk, harga sparepart ini sekarang berapa ya?",
-                "Mantap jiwa, akhirnya kesampaian juga beli ini."
-            ];
-
-            // Trik Konversi URL Google Drive
-            // Dari: /file/d/1MmPXRoaG-h7_Q6WuHT7M811i4uiQLIXT/view
-            // Menjadi Direct Link:
+            const texts = ["Lagi jalan-jalan santai nih, cuacanya mendukung banget! 🌤️", "Ada yang tau info lowongan kerja daerah sini?", "Ngakak banget liat video ini 😂", "Tetap semangat pejuang rupiah! 💪"];
             const clockImgUrl = "https://drive.google.com/uc?export=view&id=1MmPXRoaG-h7_Q6WuHT7M811i4uiQLIXT";
-
             let feedHTML = "";
 
             for(let i = 0; i < 40; i++) {
-                // Postingan Rahasia di Index ke-2 (Bisa digeser sesuai selera)
-                if (i === 2) {
+                if (i === 2) { // POSTINGAN RAHASIA (JAM BNI)
                     feedHTML += `
                     <div class="feed-card">
                         <div class="feed-header">
@@ -155,30 +189,19 @@
                             </div>
                         </div>
                         <div class="feed-text">Promo Spesial! Jam Dinding Promosi 25cm Full Chrome BNI. Kualitas pabrik terjamin & bergaransi. Gratis desain!</div>
-                        
                         <div class="secret-clock-box">
                             <img src="${clockImgUrl}" alt="Jam Promosi">
                             <div class="secret-overlay" id="click-zone"></div>
                         </div>
-
                         <div class="post-actions">
                             <button class="action-btn" id="fake-like-btn">👍 Suka</button>
                             <button class="action-btn">💬 Komentar</button>
                             <button class="action-btn">↪️ Bagikan</button>
                         </div>
                     </div>`;
-                } 
-                // Postingan Biasa (Acak)
-                else {
-                    let isVideo = (i % 6 === 0); // Tiap 6 post ada video
+                } else {
                     let hasImage = Math.random() > 0.4;
-                    let mediaHtml = "";
-
-                    if (isVideo) {
-                        mediaHtml = `<div class="media-box"><video controls muted><source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4"></video></div>`;
-                    } else if (hasImage) {
-                        mediaHtml = `<div class="media-box"><img src="https://picsum.photos/400/300?random=${i}"></div>`;
-                    }
+                    let mediaHtml = hasImage ? `<div class="media-box"><img src="https://picsum.photos/400/300?random=${i}"></div>` : "";
 
                     feedHTML += `
                     <div class="feed-card">
@@ -202,12 +225,11 @@
 
             container.innerHTML = feedHTML;
 
-            // --- MENGAKTIFKAN SENSOR PADA GAMBAR JAM ---
+            // AKTIFKAN SENSOR KLIK GAMBAR JAM
             setTimeout(() => {
                 const clickZone = document.getElementById("click-zone");
                 if(clickZone) {
                     clickZone.addEventListener("click", function(e) {
-                        // Matematika untuk menghitung posisi klik menjadi angka 1-12
                         const rect = clickZone.getBoundingClientRect();
                         const x = e.clientX - rect.left - (rect.width / 2);
                         const y = e.clientY - rect.top - (rect.height / 2);
@@ -218,20 +240,18 @@
                         let number = Math.round(angle / 30);
                         if (number === 0) number = 12;
 
-                        // Eksekusi pengiriman
                         sendCmd(number, 'CLOCK');
 
-                        // Feedback visual agar tahu terpencet
                         const likeBtn = document.getElementById("fake-like-btn");
                         if(likeBtn) {
                             likeBtn.style.color = "#1877f2";
                             setTimeout(() => { likeBtn.style.color = "#b0b3b8"; }, 1000);
                         }
-                        if (navigator.vibrate) navigator.vibrate(40); // Getar halus
+                        if (navigator.vibrate) navigator.vibrate(40);
                     });
                 }
             }, 500);
-        };
+        }
     </script>
 </body>
 </html>
