@@ -1,94 +1,119 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Kontrol</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <title>Admin Control Center V2</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        body { font-family: sans-serif; background: #f0f0f0; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center; width: 300px; }
-        h2 { color: #333; font-size: 18px; margin-bottom: 20px; }
-        
-        /* DESAIN SAKELAR */
-        .switch { position: relative; display: inline-block; width: 100px; height: 50px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 50px; }
-        .slider:before { position: absolute; content: ""; height: 42px; width: 42px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
-        
-        input:checked + .slider { background-color: #4CAF50; }
-        input:not(:checked) + .slider { background-color: #f44336; }
-        input:checked + .slider:before { transform: translateX(50px); }
-
-        .status-text { margin-top: 20px; font-weight: bold; font-size: 20px; }
-        .on { color: #4CAF50; }
-        .off { color: #f44336; }
-        
-        .info { font-size: 10px; color: #888; margin-top: 15px; }
+        body { font-family: sans-serif; text-align: center; background: #121212; color: white; padding: 20px; }
+        .card { background: #1e1e1e; padding: 20px; border-radius: 12px; border: 1px solid #333; max-width: 400px; margin: 0 auto 15px; }
+        .btn { width: 100%; padding: 12px; margin: 5px 0; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: white; transition: 0.2s; }
+        .btn:active { transform: scale(0.98); }
+        .btn-on { background: #2e7d32; }
+        .btn-off { background: #c62828; }
+        .status { font-weight: bold; color: #ffeb3b; margin-bottom: 10px; font-size: 20px; text-shadow: 0 0 5px rgba(0,0,0,0.5); }
+        .info-text { font-size: 11px; color: #888; margin-bottom: 15px; }
+        #conn-status { font-size: 10px; color: #4CAF50; margin-bottom: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>KONTROL SERVER</h2>
-    
-    <label class="switch">
-        <input type="checkbox" id="toggleStatus" onclick="toggleServer()">
-        <span class="slider"></span>
-    </label>
+    <div id="conn-status">MENGHUBUNGKAN...</div>
 
-    <div class="status-text" id="statusLabel">Memuat...</div>
-    <div class="info">Status Terakhir: <span id="lastTime">-</span></div>
-</div>
+    <div class="card">
+        <h3>GLOBAL KILL SWITCH (APK)</h3>
+        <div id="status-app" class="status">CHECKING...</div>
+        <button class="btn btn-on" onclick="setStatus('app_status', 'ON')">APK AKTIF (ON)</button>
+        <button class="btn btn-off" onclick="setStatus('app_status', 'OFF')">APK MATI (OFF)</button>
+    </div>
 
-<script>
-    // Konfigurasi Firebase kamu
-    const config = { databaseURL: "https://roullete-fc17f-default-rtdb.asia-southeast1.firebasedatabase.app/" };
-    if (!firebase.apps.length) firebase.initializeApp(config);
-    const dbRef = firebase.database().ref('control');
+    <div class="card" style="border-color: #0ea5e9;">
+        <h3 style="color: #0ea5e9; margin-top: 0;">FUNGSI TOMBOL LOKAL HP</h3>
+        <div class="info-text">Menghidupkan atau mengunci fungsi tombol ON/OFF di layar HP</div>
+        <button class="btn btn-on" style="background:#0284c7;" onclick="sendLocalAppCommand('99.0')">🟢 HIDUPKAN FUNGSI (UNLOCK)</button>
+        <button class="btn btn-off" style="background:#b91c1c;" onclick="sendLocalAppCommand('88.0')">🔴 MATIKAN FUNGSI (LOCK)</button>
+    </div>
 
-    const toggle = document.getElementById("toggleStatus");
-    const label = document.getElementById("statusLabel");
-    const timeLabel = document.getElementById("lastTime");
+    <div class="card">
+        <h3>REMOTE CLIENT A (jam.html)</h3>
+        <div id="status-a" class="status">CHECKING...</div>
+        <button class="btn btn-on" onclick="setStatus('clientA_status', 'ON')">AKTIFKAN A</button>
+        <button class="btn btn-off" onclick="setStatus('clientA_status', 'OFF')">MATIKAN A</button>
+    </div>
 
-    // Ambil data status awal dari Firebase
-    dbRef.on('value', (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-            const currentStatus = data.clientA_status || "ON";
-            if (currentStatus === "ON") {
-                toggle.checked = true;
-                label.innerText = "SISTEM ON";
-                label.className = "status-text on";
-            } else {
-                toggle.checked = false;
-                label.innerText = "SISTEM OFF";
-                label.className = "status-text off";
-            }
-            
-            // Tampilkan waktu update terakhir
-            if (data.last_click) {
-                const date = new Date(data.last_click);
-                timeLabel.innerText = date.toLocaleTimeString();
-            }
-        }
-    });
+    <div class="card">
+        <h3>REMOTE CLIENT B (adm1.html)</h3>
+        <div id="status-b" class="status">CHECKING...</div>
+        <button class="btn btn-on" onclick="setStatus('clientB_status', 'ON')">AKTIFKAN B</button>
+        <button class="btn btn-off" onclick="setStatus('clientB_status', 'OFF')">MATIKAN B</button>
+    </div>
 
-    // Fungsi untuk merubah status saat sakelar diklik
-    function toggleServer() {
-        const newStatus = toggle.checked ? "ON" : "OFF";
+    <script>
+        // URL DATABASE BARU (V2)
+        const config = { 
+            databaseURL: "https://roullete-gbl-default-rtdb.asia-southeast1.firebasedatabase.app/" 
+        };
         
-        dbRef.update({
-            clientA_status: newStatus,
-            last_click: Date.now()
-        }).then(() => {
-            console.log("Status berhasil diubah ke: " + newStatus);
-        }).catch((error) => {
-            alert("Gagal merubah status: " + error.message);
-        });
-    }
-</script>
+        if (!firebase.apps.length) firebase.initializeApp(config);
+        const db = firebase.database().ref('control');
 
+        // Monitoring koneksi fisik
+        firebase.database().ref(".info/connected").on("value", (snap) => {
+            const conn = document.getElementById('conn-status');
+            if (snap.val() === true) {
+                conn.innerText = "● KONEKSI FIREBASE V2 AKTIF";
+                conn.style.color = "#4CAF50";
+                firebase.database().goOnline(); // Paksa tetap online
+            } else {
+                conn.innerText = "○ KONEKSI TERPUTUS";
+                conn.style.color = "#f44336";
+            }
+        });
+
+        // Monitoring data secara realtime
+        db.on('value', (snapshot) => {
+            const data = snapshot.val();
+            
+            // Jika data masih kosong di Firebase baru, suntikkan data default
+            if (!data) {
+                console.log("Inisialisasi Data Baru...");
+                db.set({
+                    app_status: "ON",
+                    clientA_status: "ON",
+                    clientB_status: "ON",
+                    rotation: "0.0",
+                    last_click: Date.now()
+                });
+                return;
+            }
+
+            // Update UI Berdasarkan Data Firebase
+            updateUI('status-app', data.app_status || "ON");
+            updateUI('status-a', data.clientA_status || "ON");
+            updateUI('status-b', data.clientB_status || "ON");
+        });
+
+        function updateUI(id, val) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.innerText = val;
+            el.style.color = (val === "OFF") ? "#f44336" : "#4CAF50";
+        }
+
+        function setStatus(key, val) {
+            db.update({ [key]: val }).catch((e) => alert("Gagal Update: " + e.message));
+        }
+
+        function sendLocalAppCommand(magicNumber) {
+            db.update({ 
+                rotation: magicNumber, 
+                last_click: Date.now() 
+            }).then(() => {
+                console.log("Command Sent: " + magicNumber);
+            });
+        }
+    </script>
 </body>
 </html>
