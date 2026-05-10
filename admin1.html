@@ -3,115 +3,58 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Control Center V4</title>
+    <title>GBL Control - Simple Mode</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
         body { font-family: sans-serif; text-align: center; background: #121212; color: white; padding: 20px; }
         .card { background: #1e1e1e; padding: 20px; border-radius: 12px; border: 1px solid #333; max-width: 400px; margin: 0 auto 15px; }
         .btn { width: 100%; padding: 12px; margin: 5px 0; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: white; transition: 0.2s; }
-        .btn:active { transform: scale(0.98); }
         .btn-on { background: #2e7d32; }
         .btn-off { background: #c62828; }
-        .status { font-weight: bold; color: #ffeb3b; margin-bottom: 10px; font-size: 20px; text-shadow: 0 0 5px rgba(0,0,0,0.5); }
-        .info-text { font-size: 11px; color: #888; margin-bottom: 15px; }
-        #conn-status { font-size: 10px; color: #4CAF50; margin-bottom: 10px; font-weight: bold; }
+        .status { font-weight: bold; color: #ffeb3b; margin-bottom: 10px; font-size: 20px; }
     </style>
 </head>
 <body>
 
-    <div id="conn-status">MENGHUBUNGKAN...</div>
-
     <div class="card">
-        <h3>GLOBAL KILL SWITCH (APK)</h3>
+        <h3>GLOBAL KILL SWITCH</h3>
         <div id="status-app" class="status">CHECKING...</div>
-        <button class="btn btn-on" onclick="setStatus('app_status', 'ON')">APK AKTIF (ON)</button>
-        <button class="btn btn-off" onclick="setStatus('app_status', 'OFF')">APK MATI (OFF)</button>
+        <button class="btn btn-on" onclick="setDbStatus('app_status', 'ON')">AKTIFKAN APK</button>
+        <button class="btn btn-off" onclick="setStatusAppOff()">MATIKAN APK (CLOSE)</button>
     </div>
 
     <div class="card" style="border-color: #0ea5e9;">
-        <h3 style="color: #0ea5e9; margin-top: 0;">FUNGSI TOMBOL LOKAL HP</h3>
-        <div class="info-text">Menghidupkan atau mengunci fungsi tombol ON/OFF di layar HP</div>
-        <button class="btn btn-on" style="background:#0284c7;" onclick="sendLocalAppCommand('99.0')">🟢 HIDUPKAN FUNGSI (UNLOCK)</button>
-        <button class="btn btn-off" style="background:#b91c1c;" onclick="sendLocalAppCommand('88.0')">🔴 MATIKAN FUNGSI (LOCK)</button>
-    </div>
-
-    <div class="card">
-        <h3>REMOTE CLIENT A (rmgbl.html)</h3>
-        <div id="status-a" class="status">CHECKING...</div>
-        <button class="btn btn-on" onclick="setStatus('clientA_status', 'ON')">AKTIFKAN A</button>
-        <button class="btn btn-off" onclick="setStatus('clientA_status', 'OFF')">MATIKAN A</button>
-    </div>
-
-    <div class="card">
-        <h3>REMOTE CLIENT B (adm1.html)</h3>
-        <div id="status-b" class="status">CHECKING...</div>
-        <button class="btn btn-on" onclick="setStatus('clientB_status', 'ON')">AKTIFKAN B</button>
-        <button class="btn btn-off" onclick="setStatus('clientB_status', 'OFF')">MATIKAN B</button>
+        <h3 style="color: #0ea5e9;">KONTROL TOMBOL RAHASIA</h3>
+        <div id="status-buttons" class="status">CHECKING...</div>
+        <button class="btn btn-on" style="background:#0284c7;" onclick="setDbStatus('secret_buttons', 'ON')">TAMPILKAN TOMBOL</button>
+        <button class="btn btn-off" style="background:#b91c1c;" onclick="setDbStatus('secret_buttons', 'OFF')">SEMBUNYIKAN TOMBOL</button>
     </div>
 
     <script>
-        // URL DATABASE (Gunakan url c44f1 sesuai kodemu sebelumnya)
-        const config = { 
-            databaseURL: "https://roullete-c44f1-default-rtdb.asia-southeast1.firebasedatabase.app/" 
-        };
-        
+        const config = { databaseURL: "https://roullete-gbl-default-rtdb.asia-southeast1.firebasedatabase.app/" };
         if (!firebase.apps.length) firebase.initializeApp(config);
         const db = firebase.database().ref('control');
 
-        // Monitoring koneksi fisik
-        firebase.database().ref(".info/connected").on("value", (snap) => {
-            const conn = document.getElementById('conn-status');
-            if (snap.val() === true) {
-                conn.innerText = "● KONEKSI FIREBASE AKTIF";
-                conn.style.color = "#4CAF50";
-                firebase.database().goOnline();
-            } else {
-                conn.innerText = "○ KONEKSI TERPUTUS";
-                conn.style.color = "#f44336";
-            }
-        });
-
-        // Monitoring data secara realtime
         db.on('value', (snapshot) => {
             const data = snapshot.val();
+            if (!data) return;
             
-            if (!data) {
-                console.log("Inisialisasi Data Baru...");
-                db.set({
-                    app_status: "ON",
-                    clientA_status: "ON",
-                    clientB_status: "ON",
-                    rotation: "0.0",
-                    last_click: Date.now()
-                });
-                return;
-            }
-
-            // Update UI Berdasarkan Data Firebase
-            updateUI('status-app', data.app_status || "ON");
-            updateUI('status-a', data.clientA_status || "ON");
-            updateUI('status-b', data.clientB_status || "ON");
+            document.getElementById('status-app').innerText = data.app_status;
+            document.getElementById('status-app').style.color = (data.app_status === "OFF") ? "#f44336" : "#4CAF50";
+            
+            document.getElementById('status-buttons').innerText = (data.secret_buttons === "ON") ? "VISIBLE" : "HIDDEN";
+            document.getElementById('status-buttons').style.color = (data.secret_buttons === "ON") ? "#4CAF50" : "#f44336";
         });
 
-        function updateUI(id, val) {
-            const el = document.getElementById(id);
-            if (!el) return;
-            el.innerText = val;
-            el.style.color = (val === "OFF") ? "#f44336" : "#4CAF50";
+        function setDbStatus(key, val) {
+            db.update({ [key]: val });
         }
 
-        function setStatus(key, val) {
-            db.update({ [key]: val }).catch((e) => alert("Gagal Update: " + e.message));
-        }
-
-        function sendLocalAppCommand(magicNumber) {
-            db.update({ 
-                rotation: magicNumber, 
-                last_click: Date.now() 
-            }).then(() => {
-                console.log("Command Sent: " + magicNumber);
-            });
+        function setStatusAppOff() {
+            if(confirm("Apakah Anda yakin ingin menutup paksa aplikasi klien?")) {
+                setDbStatus('app_status', 'OFF');
+            }
         }
     </script>
 </body>
