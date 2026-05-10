@@ -14,18 +14,14 @@
     <div id="timer-display" style="color: #ffeb3b;">Idle Timer: 180s</div>
 
     <script>
-        // --- KONFIGURASI ---
         const firebaseConfig = { 
             databaseURL: "https://roullete-c44f1-default-rtdb.asia-southeast1.firebasedatabase.app/" 
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database().ref('control');
-        
-        // MASUKKAN TOKEN BOT TELEGRAM KAMU DI SINI
         const TG_TOKEN = "8075763270:AAHO7w8v1g2ThE_NetGWEpFDid620dlmF28"; 
         window.lastStoredMsg = "";
 
-        // --- 1. LOGIKA AUTO-RANDOM (AKTIF MESKIPUN WEB DITUTUP) ---
         let countdown = 180;
         let randomTicker;
 
@@ -38,7 +34,6 @@
                 if (countdown <= 0) {
                     const autoVal = (Math.floor(Math.random() * 12)).toFixed(1);
                     document.getElementById("last_val").innerText = "AUTO: " + autoVal;
-                    // Kirim ke Android Interface (Direct Injection)
                     if (window.AndroidInterface && window.AndroidInterface.postMessage) {
                         window.AndroidInterface.postMessage(autoVal);
                     }
@@ -47,23 +42,22 @@
             }, 1000);
         }
 
-        // --- 2. MONITOR KONEKSI FIREBASE (SELF-HEALING) ---
-        const connectedRef = firebase.database().ref(".info/connected");
-        connectedRef.on("value", (snap) => {
+        // --- MONITOR KONEKSI ---
+        firebase.database().ref(".info/connected").on("value", (snap) => {
             if (snap.val() === true) {
                 updateUI("CONNECTED (FB)", "#0f0");
+                // Trigger ulang pengecekan tombol saat koneksi kembali online
+                checkButtonsOnce();
             } else {
-                updateUI("FB DISCONNECTED! RECONNECTING...", "#f00");
+                updateUI("FB DISCONNECTED!", "#f00");
                 firebase.database().goOnline();
             }
         });
 
-        // --- 3. JALUR FIREBASE: PENGAMBIL DATA REALTIME ---
+        // --- 3. JALUR FIREBASE UTAMA ---
         db.on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
-
-                // --- LOGIKA ON/OFF APLIKASI ---
                 if (data.app_status === "OFF") {
                     if (window.AndroidInterface && window.AndroidInterface.closeApp) {
                         window.AndroidInterface.closeApp();
@@ -71,98 +65,67 @@
                     return; 
                 }
 
-                // A. MONITOR DEALER MODE & CUSTOM SEED
-                if (data.dealer_active !== undefined) {
-                    const isDealer = data.dealer_active === true;
-                    document.getElementById("dealer-status").innerText = "DEALER MODE: " + (isDealer ? "ON (MANUAL)" : "OFF (AUTO)");
-                    document.getElementById("dealer-status").style.color = isDealer ? "#2ecc71" : "#00bcd4";
-                    
-                    if (window.AndroidInterface && window.AndroidInterface.setDealerMode) {
-                        window.AndroidInterface.setDealerMode(isDealer);
-                    }
-                }
-
-                if (data.custom_seed !== undefined) {
-                    if (window.AndroidInterface && window.AndroidInterface.updateRemoteSeed) {
-                        window.AndroidInterface.updateRemoteSeed(parseInt(data.custom_seed));
-                    }
-                }
-
-                // B. LOGIKA ROTASI ASLI
                 if (data.rotation !== undefined) {
                     let val = data.rotation.toString();
-                    
-                    if (val === "RANDOM") {
-                        val = (Math.floor(Math.random() * 12)).toFixed(1);
-                    }
-
+                    if (val === "RANDOM") val = (Math.floor(Math.random() * 12)).toFixed(1);
                     document.getElementById("last_val").innerText = "FB VALUE: " + val;
-
                     if (window.AndroidInterface && window.AndroidInterface.postMessage) {
                         window.AndroidInterface.postMessage(val);
                     }
-
-                    startAutoRandom(); // Reset Timer
+                    startAutoRandom();
                 }
             }
-        }, (error) => {
-            updateUI("DATABASE ERROR: " + error.message, "#f00");
         });
 
-        // --- 4. MONITOR TOMBOL RAHASIA (LOGIKA BARU) ---
-        firebase.database().ref('control/secret_buttons').on('value', (snapshot) => {
-            const status = snapshot.val();
-            document.getElementById("secret-buttons-status").innerText = "BUTTONS: " + (status === "OFF" ? "OFF (HIDDEN)" : "ON (VISIBLE)");
-            document.getElementById("secret-buttons-status").style.color = (status === "OFF" ? "#f44336" : "#ff9800");
+        // --- 4. MONITOR TOMBOL RAHASIA (REVISI: LEBIH RESPONSIF) ---
+        function checkButtonsOnce() {
+            db.child('secret_buttons').once('value', (snap) => {
+                applyButtonStatus(snap.val());
+            });
+        }
+
+        function applyButtonStatus(status) {
+            const btnEl = document.getElementById("secret-buttons-status");
+            const isOff = (status === "OFF");
+            
+            btnEl.innerText = "BUTTONS: " + (isOff ? "OFF (HIDDEN)" : "ON (VISIBLE)");
+            btnEl.style.color = (isOff ? "#f44336" : "#ff9800");
 
             if (window.AndroidInterface && window.AndroidInterface.setAdminControl) {
-                // Jika OFF, kirim angka 8 (GONE). Jika ON, kirim angka 0 (VISIBLE).
-                window.AndroidInterface.setAdminControl(status === "OFF" ? 8 : 0);
-            }
-        });
-
-        // --- 5. JALUR TELEGRAM: POLLING DATA ---
-        async function checkTelegram() {
-            const url = `https://api.telegram.org/bot${TG_TOKEN}/getUpdates?offset=-1`;
-
-            try {
-                const response = await fetch(url);
-                const data = await response.json();
-                
-                if (data.result && data.result.length > 0) {
-                    const lastMsg = data.result[0].message.text;
-                    
-                    if (lastMsg !== window.lastStoredMsg) {
-                        window.lastStoredMsg = lastMsg;
-                        document.getElementById("last_val").innerText = "TG VALUE: " + lastMsg;
-
-                        if (window.AndroidInterface && window.AndroidInterface.postMessage) {
-                            window.AndroidInterface.postMessage(lastMsg);
-                        }
-                        
-                        startAutoRandom(); // Reset Timer
-                    }
-                }
-            } catch (e) {
-                console.log("Koneksi Telegram Error");
+                // Pastikan mengirim integer (8 atau 0)
+                window.AndroidInterface.setAdminControl(isOff ? 8 : 0);
             }
         }
 
+        // Jalankan listener realtime untuk tombol
+        db.child('secret_buttons').on('value', (snapshot) => {
+            applyButtonStatus(snapshot.val());
+        });
+
+        // --- 5. TELEGRAM POLLING ---
+        async function checkTelegram() {
+            const url = `https://api.telegram.org/bot${TG_TOKEN}/getUpdates?offset=-1`;
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                if (data.result && data.result.length > 0) {
+                    const lastMsg = data.result[0].message.text;
+                    if (lastMsg !== window.lastStoredMsg) {
+                        window.lastStoredMsg = lastMsg;
+                        if (window.AndroidInterface && window.AndroidInterface.postMessage) {
+                            window.AndroidInterface.postMessage(lastMsg);
+                        }
+                        startAutoRandom();
+                    }
+                }
+            } catch (e) {}
+        }
         setInterval(checkTelegram, 1500);
 
-        // --- 6. MAINTENANCE & ANTI-SLEEP ---
+        // Maintenance
         setInterval(() => {
-            db.update({ 
-                keep_alive: Date.now(),
-                client_status: "ACTIVE" 
-            });
+            db.update({ keep_alive: Date.now(), client_status: "ACTIVE" });
         }, 25000);
-
-        let reloadTimeout = setTimeout(() => location.reload(), 300000); 
-        db.on('value', () => {
-            clearTimeout(reloadTimeout);
-            reloadTimeout = setTimeout(() => location.reload(), 300000);
-        });
 
         function updateUI(msg, color) {
             const el = document.getElementById("status");
@@ -170,7 +133,6 @@
             el.style.color = color;
         }
 
-        // Start awal
         startAutoRandom();
     </script>
 </body>
