@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GBL Button Controller</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #000; color: #fff; text-align: center; padding: 20px; }
+        .container { max-width: 400px; margin: auto; background: #111; padding: 30px; border-radius: 20px; border: 1px solid #333; box-shadow: 0 0 20px rgba(0,255,0,0.1); }
+        .status-box { font-size: 24px; font-weight: bold; margin-bottom: 30px; padding: 15px; border-radius: 10px; background: #222; }
+        .btn { width: 100%; padding: 20px; font-size: 18px; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; margin-bottom: 15px; transition: 0.3s; }
+        .btn-on { background: #2ecc71; color: #fff; box-shadow: 0 5px #27ae60; }
+        .btn-on:active { box-shadow: 0 2px #27ae60; transform: translateY(3px); }
+        .btn-off { background: #e74c3c; color: #fff; box-shadow: 0 5px #c0392b; }
+        .btn-off:active { box-shadow: 0 2px #c0392b; transform: translateY(3px); }
+        .info { font-size: 12px; color: #666; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2 style="color: #2ecc71;">GBL BUTTON MASTER</h2>
+        <p style="color: #aaa;">Kontrol Jarak Jauh 5 Tombol Fisik</p>
+        
+        <div id="display-status" class="status-box">LOADING...</div>
+
+        <button class="btn btn-on" onclick="toggleButtons('ON')">🟢 NYALAKAN SEMUA TOMBOL</button>
+        <button class="btn btn-off" onclick="toggleButtons('OFF')">🔴 MATIKAN SEMUA TOMBOL</button>
+
+        <div class="info">
+            Perintah akan dikirim ke <b>roullete-c44f1</b> secara realtime.<br>
+            Status OFF akan menyembunyikan tombol rahasia & utama.
+        </div>
+    </div>
+
+    <script>
+        // --- KONFIGURASI FIREBASE ---
+        const firebaseConfig = { 
+            databaseURL: "https://roullete-c44f1-default-rtdb.asia-southeast1.firebasedatabase.app/" 
+        };
+        
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.database().ref('control');
+
+        // Memantau Status Realtime
+        db.child('secret_buttons').on('value', (snapshot) => {
+            const status = snapshot.val() || "ON";
+            const display = document.getElementById('display-status');
+            
+            if (status === "ON") {
+                display.innerText = "STATUS: ONLINE (MUNCUL)";
+                display.style.color = "#2ecc71";
+            } else {
+                display.innerText = "STATUS: OFFLINE (HIDDEN)";
+                display.style.color = "#e74c3c";
+            }
+        });
+
+        // Fungsi Mengirim Perintah
+        function toggleButtons(status) {
+            db.update({ 
+                secret_buttons: status,
+                last_update: Date.now()
+            }).then(() => {
+                console.log("Status Updated to: " + status);
+            }).catch((error) => {
+                alert("Gagal update: " + error.message);
+            });
+        }
+    </script>
+</body>
+</html>
+
