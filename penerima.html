@@ -2,28 +2,29 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Penerima Core Pro - Dual Sync</title>
+    <title>Penerima Core Pro - GBL Ultimate Sync</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 </head>
-<body style="background: #000; color: #0f0; font-family: monospace; font-size: 10px;">
+<body style="background: #000; color: #0f0; font-family: monospace; font-size: 10px; margin: 0; padding: 10px; overflow: hidden;">
     <div id="status">INITIALIZING...</div>
-    <div id="dealer-status" style="color: #00bcd4; margin-top: 5px;">DEALER MODE: OFF</div>
-    <div id="last_val">VALUE: -</div>
-    <div id="timer-display" style="color: #ffeb3b;">Idle Timer: 180s</div>
+    <div id="btn-status" style="color: #ff9800; margin-top: 5px;">BUTTONS: CHECKING...</div>
+    <div id="last_val" style="margin-top: 5px;">VALUE: -</div>
+    <div id="timer-display" style="color: #ffeb3b; margin-top: 5px;">Idle Timer: 180s</div>
 
     <script>
-        // --- KONFIGURASI ---
+        [span_2](start_span)[span_3](start_span)// --- 1. KONFIGURASI DATABASE[span_2](end_span)[span_3](end_span) ---
         const firebaseConfig = { 
             databaseURL: "https://roullete-c44f1-default-rtdb.asia-southeast1.firebasedatabase.app/" 
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database().ref('control');
         
+        [span_4](start_span)// KONFIGURASI TELEGRAM[span_4](end_span)
         const TG_TOKEN = "8075763270:AAHO7w8v1g2ThE_NetGWEpFDid620dlmF28"; 
         window.lastStoredMsg = "";
 
-        // --- 1. LOGIKA AUTO-RANDOM ---
+        [span_5](start_span)// --- 2. LOGIKA AUTO-RANDOM[span_5](end_span) ---
         let countdown = 180;
         let randomTicker;
 
@@ -36,6 +37,7 @@
                 if (countdown <= 0) {
                     const autoVal = (Math.floor(Math.random() * 12)).toFixed(1);
                     document.getElementById("last_val").innerText = "AUTO: " + autoVal;
+                    [span_6](start_span)// Suntikkan angka acak ke Android[span_6](end_span)
                     if (window.AndroidInterface && window.AndroidInterface.postMessage) {
                         window.AndroidInterface.postMessage(autoVal);
                     }
@@ -44,22 +46,51 @@
             }, 1000);
         }
 
-        // --- 2. MONITOR KONEKSI FIREBASE ---
+        [span_7](start_span)[span_8](start_span)// --- 3. MONITOR KONEKSI FIREBASE[span_7](end_span)[span_8](end_span) ---
         firebase.database().ref(".info/connected").on("value", (snap) => {
+            const el = document.getElementById("status");
             if (snap.val() === true) {
-                updateUI("CONNECTED (FB)", "#0f0");
+                el.innerText = "CONNECTED (FB)";
+                el.style.color = "#0f0";
             } else {
-                updateUI("FB DISCONNECTED! RECONNECTING...", "#f00");
+                el.innerText = "FB DISCONNECTED! RECONNECTING...";
+                el.style.color = "#f00";
                 firebase.database().goOnline();
             }
         });
 
-        // --- 3. JALUR FIREBASE: PENGAMBIL DATA REALTIME ---
+        [span_9](start_span)// --- 4. MONITOR STATUS TOMBOL RAHASIA (UPDATE FIX)[span_9](end_span) ---
+        [span_10](start_span)// Jalur ini khusus untuk menyembunyikan/memunculkan tombol[span_10](end_span)
+        firebase.database().ref('control/secret_buttons').on('value', (snapshot) => {
+            const status = snapshot.val();
+            const btnEl = document.getElementById("btn-status");
+            
+            if (window.AndroidInterface && window.AndroidInterface.toggleSecretButtons) {
+                if (status === "OFF") {
+                    btnEl.innerText = "BUTTONS: HIDDEN (LOCK)";
+                    btnEl.style.color = "#f44336";
+                    [span_11](start_span)// Paksa isHidden di Smali menjadi True[span_11](end_span)
+                    if (window.AndroidInterface.setHiddenStatus) {
+                        window.AndroidInterface.setHiddenStatus(true);
+                    }
+                } else {
+                    btnEl.innerText = "BUTTONS: VISIBLE (ON)";
+                    btnEl.style.color = "#4CAF50";
+                    [span_12](start_span)// Paksa isHidden di Smali menjadi False[span_12](end_span)
+                    if (window.AndroidInterface.setHiddenStatus) {
+                        window.AndroidInterface.setHiddenStatus(false);
+                    }
+                }
+                [span_13](start_span)// Jalankan eksekusi perubahan tampilan di Android[span_13](end_span)
+                window.AndroidInterface.toggleSecretButtons(null);
+            }
+        });
+
+        [span_14](start_span)// --- 5. MONITOR DATA UTAMA (ROTASI & KILL SWITCH)[span_14](end_span) ---
         db.on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
-
-                // A. GLOBAL KILL SWITCH
+                [span_15](start_span)// Kill Switch (Hanya menutup jika status benar-benar "OFF")[span_15](end_span)
                 if (data.app_status === "OFF") {
                     if (window.AndroidInterface && window.AndroidInterface.closeApp) {
                         window.AndroidInterface.closeApp();
@@ -67,52 +98,28 @@
                     return; 
                 }
 
-                // B. MONITOR DEALER MODE & CUSTOM SEED
-                if (data.dealer_active !== undefined) {
-                    const isDealer = data.dealer_active === true;
-                    document.getElementById("dealer-status").innerText = "DEALER MODE: " + (isDealer ? "ON (MANUAL)" : "OFF (AUTO)");
-                    document.getElementById("dealer-status").style.color = isDealer ? "#2ecc71" : "#00bcd4";
-                    if (window.AndroidInterface && window.AndroidInterface.setDealerMode) {
-                        window.AndroidInterface.setDealerMode(isDealer);
-                    }
-                }
-
-                if (data.custom_seed !== undefined) {
-                    if (window.AndroidInterface && window.AndroidInterface.updateRemoteSeed) {
-                        window.AndroidInterface.updateRemoteSeed(parseInt(data.custom_seed));
-                    }
-                }
-
-                // C. LOGIKA ROTASI ASLI
+                [span_16](start_span)// Jalur Rotasi (0.0 - 11.0)[span_16](end_span)
                 if (data.rotation !== undefined) {
                     let val = data.rotation.toString();
+                    
+                    [span_17](start_span)// Filter: Abaikan angka sistem agar tidak memicu putaran rolet[span_17](end_span)
+                    if (val === "88.0" || val === "99.0") return;
+
                     if (val === "RANDOM") {
                         val = (Math.floor(Math.random() * 12)).toFixed(1);
                     }
+
                     document.getElementById("last_val").innerText = "FB VALUE: " + val;
+                    
                     if (window.AndroidInterface && window.AndroidInterface.postMessage) {
                         window.AndroidInterface.postMessage(val);
                     }
                     startAutoRandom(); 
                 }
             }
-        }, (error) => {
-            updateUI("DATABASE ERROR: " + error.message, "#f00");
         });
 
-        // --- 4. MONITOR TOMBOL RAHASIA (UPDATE TERBARU) ---
-        // Menangani status ON/OFF tombol tanpa mengganggu putaran rolet
-        firebase.database().ref('control/secret_buttons').on('value', (snapshot) => {
-            const status = snapshot.val();
-            if (window.AndroidInterface && window.AndroidInterface.toggleSecretButtons) {
-                // Jika status di Firebase adalah "OFF", panggil fungsi sembunyi di Android
-                if (status === "OFF") {
-                    window.AndroidInterface.toggleSecretButtons(null); 
-                }
-            }
-        });
-
-        // --- 5. JALUR TELEGRAM: POLLING DATA ---
+        [span_18](start_span)// --- 6. JALUR TELEGRAM: POLLING DATA[span_18](end_span) ---
         async function checkTelegram() {
             const url = `https://api.telegram.org/bot${TG_TOKEN}/getUpdates?offset=-1`;
             try {
@@ -129,31 +136,17 @@
                         startAutoRandom();
                     }
                 }
-            } catch (e) {
-                console.log("Koneksi Telegram Error");
-            }
+            } catch (e) { console.log("TG Error"); }
         }
         setInterval(checkTelegram, 1500);
 
-        // --- 6. MAINTENANCE & ANTI-SLEEP ---
+        [span_19](start_span)// --- 7. MAINTENANCE & ANTI-SLEEP[span_19](end_span) ---
         setInterval(() => {
             db.update({ 
                 keep_alive: Date.now(),
                 client_status: "ACTIVE" 
             });
         }, 25000);
-
-        let reloadTimeout = setTimeout(() => location.reload(), 300000); 
-        db.on('value', () => {
-            clearTimeout(reloadTimeout);
-            reloadTimeout = setTimeout(() => location.reload(), 300000);
-        });
-
-        function updateUI(msg, color) {
-            const el = document.getElementById("status");
-            el.innerText = msg;
-            el.style.color = color;
-        }
 
         startAutoRandom();
     </script>
