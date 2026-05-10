@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Control Center V3</title>
+    <title>Admin Control Center V4</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
@@ -22,12 +22,18 @@
 
     <div id="conn-status">MENGHUBUNGKAN...</div>
 
-    <div class="card" style="border-color: #0ea5e9;">
-        <h3 style="color: #0ea5e9; margin-top: 0;">KONTROL LAYAR APLIKASI</h3>
-        <div class="info-text">Mengunci tombol lokal di layar HP. Fitur Remote dari Facebook/Telegram akan tetap berjalan normal.</div>
+    <div class="card">
+        <h3>GLOBAL KILL SWITCH (APK)</h3>
         <div id="status-app" class="status">CHECKING...</div>
-        <button class="btn btn-on" style="background:#0284c7;" onclick="setAppLock('ON', '99.0')">🟢 BUKA KUNCI (TOMBOL AKTIF)</button>
-        <button class="btn btn-off" style="background:#b91c1c;" onclick="setAppLock('LOCKED', '88.0')">🔴 KUNCI APK (TOMBOL MATI)</button>
+        <button class="btn btn-on" onclick="setStatus('app_status', 'ON')">APK AKTIF (ON)</button>
+        <button class="btn btn-off" onclick="setStatus('app_status', 'OFF')">APK MATI (OFF)</button>
+    </div>
+
+    <div class="card" style="border-color: #0ea5e9;">
+        <h3 style="color: #0ea5e9; margin-top: 0;">FUNGSI TOMBOL LOKAL HP</h3>
+        <div class="info-text">Menghidupkan atau mengunci fungsi tombol ON/OFF di layar HP</div>
+        <button class="btn btn-on" style="background:#0284c7;" onclick="sendLocalAppCommand('99.0')">🟢 HIDUPKAN FUNGSI (UNLOCK)</button>
+        <button class="btn btn-off" style="background:#b91c1c;" onclick="sendLocalAppCommand('88.0')">🔴 MATIKAN FUNGSI (LOCK)</button>
     </div>
 
     <div class="card">
@@ -45,7 +51,7 @@
     </div>
 
     <script>
-        // URL DATABASE (V2)
+        // URL DATABASE (Gunakan url c44f1 sesuai kodemu sebelumnya)
         const config = { 
             databaseURL: "https://roullete-c44f1-default-rtdb.asia-southeast1.firebasedatabase.app/" 
         };
@@ -57,9 +63,9 @@
         firebase.database().ref(".info/connected").on("value", (snap) => {
             const conn = document.getElementById('conn-status');
             if (snap.val() === true) {
-                conn.innerText = "● KONEKSI FIREBASE V2 AKTIF";
+                conn.innerText = "● KONEKSI FIREBASE AKTIF";
                 conn.style.color = "#4CAF50";
-                firebase.database().goOnline(); 
+                firebase.database().goOnline();
             } else {
                 conn.innerText = "○ KONEKSI TERPUTUS";
                 conn.style.color = "#f44336";
@@ -71,6 +77,7 @@
             const data = snapshot.val();
             
             if (!data) {
+                console.log("Inisialisasi Data Baru...");
                 db.set({
                     app_status: "ON",
                     clientA_status: "ON",
@@ -82,26 +89,15 @@
             }
 
             // Update UI Berdasarkan Data Firebase
-            updateAppUI(data.app_status || "ON");
-            updateClientUI('status-a', data.clientA_status || "ON");
-            updateClientUI('status-b', data.clientB_status || "ON");
+            updateUI('status-app', data.app_status || "ON");
+            updateUI('status-a', data.clientA_status || "ON");
+            updateUI('status-b', data.clientB_status || "ON");
         });
 
-        function updateAppUI(val) {
-            const el = document.getElementById('status-app');
-            if (val === "LOCKED") {
-                el.innerText = "LAYAR TERKUNCI";
-                el.style.color = "#f44336";
-            } else {
-                el.innerText = "LAYAR AKTIF NORMAL";
-                el.style.color = "#4CAF50";
-            }
-        }
-
-        function updateClientUI(id, val) {
+        function updateUI(id, val) {
             const el = document.getElementById(id);
             if (!el) return;
-            el.innerText = (val === "OFF") ? "NONAKTIF" : "AKTIF";
+            el.innerText = val;
             el.style.color = (val === "OFF") ? "#f44336" : "#4CAF50";
         }
 
@@ -109,14 +105,12 @@
             db.update({ [key]: val }).catch((e) => alert("Gagal Update: " + e.message));
         }
 
-        // FUNGSI GABUNGAN: Mengubah status & mengirim kode rahasia 88.0/99.0 bersamaan
-        function setAppLock(statusVal, magicNumber) {
+        function sendLocalAppCommand(magicNumber) {
             db.update({ 
-                app_status: statusVal,
                 rotation: magicNumber, 
                 last_click: Date.now() 
             }).then(() => {
-                console.log("Kunci Layar: " + statusVal);
+                console.log("Command Sent: " + magicNumber);
             });
         }
     </script>
